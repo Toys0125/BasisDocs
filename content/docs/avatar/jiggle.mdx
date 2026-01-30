@@ -2,6 +2,8 @@
 title: Jiggle Physics
 description: Jiggle Physics allows you to add dynamic movement to parts of your avatar, such as hair, clothing, or accessories, enhancing realism and immersion.
 ---
+import { Callout } from 'fumadocs-ui/components/callout';
+
 
 ## To add Jiggle Physics
 
@@ -15,3 +17,10 @@ For each jiggle root:
 
 - Activate `Advanced` to view all settings.
 - Enable `Collision` and adjust `Collision Radius` to fit the object.
+
+## Interactions with Animation Rigging
+
+Currently with Jiggle Bones, any GameObjects/Bones affected by a Jiggle Bone Component and are referenced by a Animation Rigging Constraint need a `Rig Transform` Component added to them.
+<Callout type="info">
+Adding `Rig Transform` components do have a cost associated to them so don't add it to all GameObjects on your avatar or prop.
+</Callout>
