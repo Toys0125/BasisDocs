@@ -27,7 +27,7 @@ Documentation can be found for all the Constraints that Animation Rigging provid
 </Callout>
 
 <Callout type="warning">
-**You can not use the root's animator for the Rig Builder and will break animation and Basis armature loader.**
+**You can not use the root's animator for the Rig Builder and will break animation and Basis armature loader.** None of your constraints will work either so just don't do it.
 </Callout>
 </Step>
 <Step>
@@ -51,7 +51,7 @@ If Jiggle Bones is affecting any constraints you have to add the `Rig Transform`
 
 Fx: You have a laser that is constraint to look the direction of your avatar's head. You have to go from parent of the laser adding `Rig Transform` components until you hit an Armature/Humanoid bone.
 <Callout type="info">
-This includes all source bones if they are not part of the humanoid. Fx: Wings that are affected by Jiggle Bones need `Rig Transform` components if you have a constraint reference them.
+This includes all source bones that are under the effect of the constraints. Fx: Wings that are affected by Jiggle Bones need `Rig Transform` components if you have a constraint reference them.
 </Callout>
 <Accordions type="single">
 <Accordion title="Example Jiggle Bone">
