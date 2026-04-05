@@ -1,0 +1,217 @@
+---
+title: Headless Clients
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+
+## Introduction
+
+Basis provides headless client builds that can connect to a Basis server without rendering the full interactive client. These builds are mainly useful for load testing, connection testing, and validating server behavior under higher player counts.
+
+Linux and Windows headless client builds can also be downloaded from the GitHub artifacts for Basis. Docker is a convenient way to run many instances, but it is not required to run headless clients.
+
+Use headless clients when you want to:
+
+- Simulate multiple users joining the same server
+- Measure how your server behaves under load
+- Test passworded access before inviting real users
+- Reproduce networking issues with more controlled clients
+
+<Callout type="info" title="What this page covers">
+This page focuses on running the headless client itself. For the server-side setup, see the deployment, configuration, and monitoring pages.
+</Callout>
+
+## Getting the Headless Client
+
+You have two main ways to run headless clients:
+
+- Download the Linux or Windows headless client build from the [GitHub artifacts](https://nightly.link/BasisVR/Basis/workflows/build-docker-server/developer?preview)
+- Run the published headless Docker images
+
+Docker is useful when you want repeatable containerized setups or need to scale many instances quickly. If you only need to run one or a few headless clients, downloading the platform build directly is also valid.
+
+<Callout type="warn">
+By default the Windows Version of the headless is built with Mono instead of IL2CPP and is a limitation of the UnityCI for building. Mono uses about 1.5-2x more memory than IL2CPP so use the linux version unless package states its IL2CPP version.
+</Callout>
+
+## Before You Start
+
+Make sure the server you want to target is already reachable.
+
+- Basis traffic uses `4296/udp`
+- The default server password is `default_password` unless you changed it in `config.xml` or with environment variables
+- If you are testing a local server, use your local machine or LAN address instead of a public hostname
+
+The server documentation also notes that `config.xml` values can be overridden by environment variables. That matters here because the same pattern is used for the headless client examples below.
+
+## Setting up Desktop Docker
+<Steps>
+<Step>
+Open `System Information` and check if Virtualization-based security says `Running` and Virtualization-based security Available has:`Security Properties	Base Virtualization Support`
+
+If not go into your bios and Enable AMD-Vi or Intel VT-d based on your CPU. 
+
+Google your motherboard that under `BaseBoard Product` to found out where the setting is and what key to open bios.
+</Step>
+<Step>
+Go to [Docker and Download for Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and install Docker Desktop.
+</Step>
+<Step>
+Make a folder for the `docker-compose.yml` and copy the example below.
+</Step>
+<Step>
+Start a Command Prompt or Powershell in that directory. When using file explorer you can launch Command Prompt by typing `cmd.exe` in the url bar or explorer.
+</Step>
+<Step>
+First download/update the docker images with `docker compose pull`
+</Step>
+<Step>
+Type the command `docker compose up -d` to start the containers
+</Step>
+<Step>
+Use `docker ps` to see the health of all containers and wait until all say healthy. Should take about 30 seconds to a minute.
+</Step>
+<Step>
+Use `docker compose scale "basis-headless=#` to increase the number of containers. Than go back to a step and repeat until either you out of CPU or RAM.
+
+*Replace `#` with a number in increments of 5*
+
+<Callout type="info">
+You can also measure usage with `docker compose stats`
+</Callout>
+</Step>
+</Steps>
+
+## Docker Compose Configuration
+
+When running Docker from Docker Desktop, Docker engine normally uses WSL2 under the hood, so the Linux image is usually the correct choice there. If you are specifically running Windows containers *for example Windows Server 2016*, use the Windows image instead found in the Basis-Headless package on github.
+
+<Callout type="warn">
+By Default use the linux version of the docker image as its built using IL2CPP and if you get manifest errors about linux, you need to use the `-linux` versions.
+</Callout>
+
+### docker-compose.yml
+
+```yml
+services:
+  basis-headless:
+    image: ghcr.io/basisvr/basis-headless:nightly-linux
+    scale: 3 # You should change based on how much RAM you have. 1.5GB per instance is normally required.
+    environment:
+      Port: 4296
+      Password: default_password
+      Ip: 'server1.basisvr.org'
+      HealthCheckEnabled: "true"
+      HealthCheckHost: "127.0.0.1"
+      HealthCheckPort: 10666
+      HealthPath: "/health"
+      AvatarFileLocation: ""
+      AvatarPassword: ""
+    volumes:
+      - ./Basis:/root/.config/unity3d/Basis Unity/Basis Unity # For Sharing Cached files. Optional not required
+      - "${APPDATA}/../LocalLow/Basis Unity/Basis Unity:/root/.config/unity3d/Basis Unity/Basis Unity" # If you want to use your own cache and avatar files. *Corruption possible
+      - ./config.xml:/app/HeadlessLinuxServer_Data/config.xml # Optional will be overridden when using environment variables
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:10666/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      autoheal-app: true
+  autoheal:
+    image: willfarrell/autoheal:latest
+    network_mode: none
+    restart: always
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal-app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+```
+
+## What the Settings Mean
+
+The examples above use the minimum values needed to connect:
+
+| Variable | Purpose |
+|----------|---------|
+| `IP` | Hostname or IP address of the Basis server |
+| `Port` | UDP port the server listens on, usually `4296` |
+| `Password` | Server password required to join |
+| `HealthCheckEnabled` | Enable or Disable HealthCheckEndpoint |
+| `HealthCheckHost` | Ip Endpoint listens on |
+| `HealthCheckPort` | Port Endpoint listens on |
+| `HealthPath` | Path for Health info |
+| `AvatarFileLocation` | Combined URL support of avatar#base64 |
+| `AvatarPassword` | Avatar password |
+
+If you mount a `config.xml`, treat it as the file-based fallback configuration. If you also set environment variables, the docs for the main server note that environment values override xml values, so keep one source of truth where possible to avoid confusion during testing.
+
+
+## Running at Scale
+
+Docker Compose can launch multiple headless clients from the same service definition:
+
+<h3> `docker compose up --scale "basis-headless=10"`</h3> *--scale when not set in the docker-compose.yml*
+
+As a rough guideline, the existing note recommends budgeting about `1.5 GB` of memory per instance. For example, if you have around `30 GB` available, you can plan on roughly `20` instances.
+
+<Callout type="warning" title="Load few at a time">
+Do not try launching all clients at once. You will overload your computers ram, and at the current moment we don't offer a script that provides easy launching of instance. 
+
+Best way is to wait until the health status of all launched containers are showing healthy before adding more.
+</Callout>
+
+This is only a starting estimate. Actual limits depend on:
+
+- Available RAM
+- CPU cores
+- The server's `PeerLimit`
+- Bandwidth available between the headless clients and the server
+
+
+## Monitoring During Tests
+
+If the server health endpoint is exposed, you can use it to confirm that your test is having the expected effect. The monitoring docs show this example response:
+
+```json
+{
+  "listening": true,
+  "visitors": "0",
+  "capacity": "1024",
+  "sent": "0",
+  "recv": "0",
+  "currentTime": "2025-05-09T20:19:03.200Z",
+  "startTime": "2025-05-09T20:19:00.049Z",
+  "version": "6"
+}
+```
+
+During a headless load test, the most useful fields are:
+
+- `listening` to confirm the server is accepting connections
+- `visitors` to see how many clients are currently connected
+- `capacity` to compare against your configured player limit
+- `sent` and `recv` to observe traffic growth
+- `version` to confirm the expected server version
+
+<Callout type="warn" title="Version matching matters">
+The server docs explicitly note that client and server code must agree on the server version. If your headless image and your target server are built from incompatible versions, connection attempts may fail even when the network settings are correct.
+</Callout>
+
+## Troubleshooting
+
+If the headless clients do not connect, check these first:
+
+- The server address in `Ip` is reachable from the container
+- The server password matches
+- `4296/udp` is open and mapped correctly
+- You are using the correct image for your container runtime
+- Your server is actually listening and healthy on startup
+- The client and server versions are compatible
+
+If you are scaling many instances and seeing instability, reduce the instance count and confirm whether the limit is memory, CPU, network bandwidth, or the server's configured `PeerLimit`.
+
+It is also advisable to have a considerable amount of virtual memory available for Unity in order to run without experiencing 137 exit codes (Out of Memory) in Docker. 
