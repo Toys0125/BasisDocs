@@ -1,0 +1,222 @@
+---
+title: OSC
+description: Publish and receive OSC data in Basis scripts
+icon: Activity
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+## Overview
+
+Basis includes a `BasisOsc` shim for creator scripts that need to receive OSC messages, subscribe to live address ranges, or publish values back into the runtime OSC bridge.
+
+The component is scope-aware. The same relative address can resolve differently depending on whether the object is running under a local avatar, remote avatar, prop, or scene.
+
+<Callout type="info">
+Use `BasisOsc` for creator-facing OSC workflows inside props, avatars, and scenes. The bridge also reflects live subscriptions and published values into OSC Query.
+</Callout>
+
+## Setup
+
+1. Add a `BasisOsc` component to the same GameObject as your script, or to a nearby object you can reference.
+2. Place that object under a recognized Basis scope:
+   - `BasisAvatar`
+   - `BasisProp`
+   - `BasisScene`
+3. Read the component with `GetComponent<BasisOsc>()` before you subscribe or publish.
+4. Remove subscriptions when the object disables or is destroyed.
+
+```csharp title="Get a BasisOsc reference"
+using Basis.Shims;
+using UnityEngine;
+
+[Cilboxable]
+public class OscConsumer : MonoBehaviour
+{
+    private BasisOsc osc;
+
+    private void Start()
+    {
+        osc = GetComponent<BasisOsc>();
+        if (osc == null)
+        {
+            Debug.LogError("OscConsumer requires a BasisOsc component.");
+        }
+    }
+}
+```
+
+<Callout type="warn">
+If no `BasisAvatar`, `BasisProp`, or `BasisScene` scope can be resolved, relative subscriptions default to `/avatar/parameters/...`. Publishing is only available when the component is under a recognized scope.
+</Callout>
+
+## Subscribe to OSC
+
+Use an exact subscription when you want one address.
+
+```csharp title="Exact subscription"
+osc.Subscribe("/avatar/parameters/TestToggle", OnToggleMessage);
+
+private void OnToggleMessage(OscMessage message, OscData[] arguments)
+{
+    Debug.Log($"Received {message.Path} with {arguments.Length} value(s).");
+}
+```
+
+Relative addresses are allowed. On a local avatar, `"Face/Smile"` resolves to `/avatar/parameters/Face/Smile`.
+
+```csharp title="Relative exact subscription"
+osc.Subscribe("Face/Smile", OnSmileChanged);
+```
+
+Use prefix subscriptions when you want every matching child address.
+
+```csharp title="Prefix subscription"
+osc.SubscribePrefix("FT/", OnFaceTrackingMessage);
+
+private void OnFaceTrackingMessage(OscMessage message, OscData[] arguments)
+{
+    Debug.Log($"Matched prefix for {message.Path}");
+}
+```
+
+Prefix matching uses path segment boundaries. A prefix such as `/avatar/parameters` matches `/avatar/parameters/Face/Smile`, but not `/avatar/parametersExtra`.
+
+### Value callbacks
+
+Use value callbacks when you only care about the first argument.
+
+```csharp title="Exact value callback"
+osc.SubscribeValue("Speed", value =>
+{
+    if (value.Kind == OscDataKind.Float32)
+    {
+        Debug.Log($"Speed is now {value.FloatValue}");
+    }
+});
+```
+
+```csharp title="Prefix value callback"
+osc.SubscribePrefixValue("/avatar/parameters/Hands/", value =>
+{
+    Debug.Log($"First value kind: {value.Kind}");
+});
+```
+
+`SubscribeValue` and `SubscribePrefixValue` only fire when the message has at least one argument.
+
+### Receive all messages
+
+Set `ReceiveAll` when you want the component to observe every routed OSC message in its receiver scope.
+
+```csharp title="Receive all messages"
+osc.ReceiveAll = true;
+osc.OnMessage += (message, arguments) =>
+{
+    Debug.Log($"Saw {message.Path}");
+};
+```
+
+## Publish OSC
+
+Use `PublishValue` for a single argument and `PublishValues` for multiple arguments.
+
+```csharp title="Publish one value"
+osc.PublishValue("Status", OscData.String("ready"));
+```
+
+```csharp title="Publish multiple values"
+osc.PublishValues("Blend", new[]
+{
+    OscData.Float32(0.5f),
+    OscData.String("armed"),
+});
+```
+
+You can publish several OSC data kinds, including booleans, integers, floats, strings, symbols, MIDI data, arrays, and blobs.
+
+Local avatars can also publish directly to `/avatar/public/...` when that is the address you need to expose.
+
+```csharp title="Local avatar publishing to avatar public"
+osc.PublishValue("/avatar/public/Status", OscData.String("shareable"));
+```
+
+<Callout type="warn">
+Remote-avatar `BasisOsc` components cannot publish. Do not assume remote avatar publishing behaves the same way as local avatar, prop, or scene publishing.
+</Callout>
+
+## Address And Scope Rules
+
+`BasisOsc` normalizes addresses before routing them. This matters for both subscriptions and publishing.
+
+### Avatar local
+
+- Relative subscriptions default to `/avatar/parameters/...`.
+- Relative publish addresses publish into `/avatar/parameters/...`.
+- Absolute `/avatar/public/...` publish addresses are also allowed.
+
+### Avatar remote
+
+- Relative subscriptions default to `/avatar/public/...`.
+- Absolute `/avatar/parameters/...` subscriptions are rewritten to `/avatar/public/...`.
+- Publishing is not available.
+
+### Prop
+
+- Relative subscriptions default to `/avatar/public/...`.
+- Absolute avatar subscriptions are restricted to `/avatar/public/...`.
+- Relative publish addresses are scoped to the prop instance:
+
+```text
+/prop/<prop-id>/parameters/...
+```
+
+### Scene
+
+- Relative subscriptions default to `/avatar/public/...`.
+- Absolute avatar subscriptions are restricted to `/avatar/public/...`.
+- Relative publish addresses are scoped to the scene instance:
+
+```text
+/scene/<scene-id>/parameters/...
+```
+
+<Callout type="warn">
+Do not assume a raw path is used exactly as typed. If the component has scope, `BasisOsc` may rewrite relative addresses or reject restricted absolute avatar paths.
+</Callout>
+
+## OSC Query Behavior
+
+The OSC bridge updates OSC Query from live runtime state.
+
+- Exact subscriptions create query nodes for the subscribed address.
+- Prefix subscriptions create query branches for the subscribed prefix.
+- Published values create query nodes with the latest published value payload.
+- Query nodes are created and removed dynamically as subscriptions change.
+
+This means the OSC Query surface is not a fixed static schema. It depends on which `BasisOsc` components are active and which subscriptions or published values they currently own.
+
+<Callout type="info">
+Because receiver state is keyed by entity ID and managed centrally, cleanup matters. Remove subscriptions in `OnDisable`, `OnDestroy`, or call `ClearSubscriptions()` when your script is done.
+</Callout>
+
+## Example
+
+The branch adds a sample named `OSC Subscription Example` with `BasisOscCilboxSubscriptionExample.cs`. It shows both explicit and implicit address subscriptions and unregisters its handlers on disable.
+
+<Cards>
+  <Card
+    title="Scripting Overview"
+    description="Return to the main scripting guide for broader Cilbox and script setup."
+    href="/docs/scripting"
+  />
+</Cards>
+
+## Troubleshooting
+
+- If a relative address resolves unexpectedly, check the nearest `BasisAvatar`, `BasisProp`, or `BasisScene` ancestor first.
+- If a remote avatar does not receive `/avatar/parameters/...`, subscribe to `/avatar/public/...` or use a relative path instead.
+- If a value callback does not fire, confirm the incoming message includes at least one argument.
+- If published data does not appear where you expect, verify whether the component is under avatar local, prop, or scene scope.
+- If stale query nodes or listeners remain, make sure your script unsubscribes during shutdown.
