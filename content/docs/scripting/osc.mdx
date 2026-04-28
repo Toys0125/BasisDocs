@@ -19,11 +19,11 @@ Use `BasisOsc` for creator-facing OSC workflows inside props, avatars, and scene
 
 ## Setup
 
-1. Add a `BasisOsc` component to the same GameObject as your script, or to a nearby object you can reference.
-2. Place that object under a recognized Basis scope:
-   - `BasisAvatar`
-   - `BasisProp`
-   - `BasisScene`
+1. Add a `BasisOsc` component to the same GameObject as your script, or to a nearby object you can reference. When calling from cilbox, you can call and it will be added automatically.
+2. Place that object under a recognized Basis gameobject with these components to be under their scope:
+   - `Basis.Scripts.BasisSdk.BasisAvatar`
+   - `Basis.Scripts.BasisSdk.BasisProp`
+   - `Basis.Scripts.BasisSdk.BasisScene`
 3. Read the component with `GetComponent<BasisOsc>()` before you subscribe or publish.
 4. Remove subscriptions when the object disables or is destroyed.
 
@@ -70,6 +70,13 @@ Relative addresses are allowed. On a local avatar, `"Face/Smile"` resolves to `/
 osc.Subscribe("Face/Smile", OnSmileChanged);
 ```
 
+If you need to know the final normalized address that was registered, use the overload with an `out` variable.
+
+```csharp title="Get the resolved exact subscription address"
+osc.Subscribe("Face/Smile", OnSmileChanged, out string resolvedAddress);
+Debug.Log($"Subscribed to {resolvedAddress}");
+```
+
 Use prefix subscriptions when you want every matching child address.
 
 ```csharp title="Prefix subscription"
@@ -79,6 +86,11 @@ private void OnFaceTrackingMessage(OscMessage message, OscData[] arguments)
 {
     Debug.Log($"Matched prefix for {message.Path}");
 }
+```
+
+```csharp title="Get the resolved prefix subscription address"
+osc.SubscribePrefix("FT/", OnFaceTrackingMessage, out string resolvedPrefix);
+Debug.Log($"Watching prefix {resolvedPrefix}");
 ```
 
 Prefix matching uses path segment boundaries. A prefix such as `/avatar/parameters` matches `/avatar/parameters/Face/Smile`, but not `/avatar/parametersExtra`.
@@ -108,7 +120,7 @@ osc.SubscribePrefixValue("/avatar/parameters/Hands/", value =>
 
 ### Receive all messages
 
-Set `ReceiveAll` when you want the component to observe every routed OSC message in its receiver scope.
+Set `ReceiveAll` when you want the component to observe every routed OSC message inside its allowed scope.
 
 ```csharp title="Receive all messages"
 osc.ReceiveAll = true;
@@ -117,6 +129,14 @@ osc.OnMessage += (message, arguments) =>
     Debug.Log($"Saw {message.Path}");
 };
 ```
+
+`ReceiveAll` is intentionally security-limited. It does not bypass normal scope boundaries.
+
+- Local avatar `BasisOsc` only sees `/avatar/parameters/*`
+- Remote avatar `BasisOsc` only sees `/avatar/public/*`
+- Prop and scene `BasisOsc` only see the same default receive scope as relative subscriptions, which is `/avatar/public/*`
+
+This means `ReceiveAll` behaves like a scoped wildcard, not a process-wide OSC tap.
 
 ## Publish OSC
 
@@ -132,6 +152,23 @@ osc.PublishValues("Blend", new[]
     OscData.Float32(0.5f),
     OscData.String("armed"),
 });
+```
+
+If you need to know the final absolute address that was published, use the overload with an `out` variable.
+
+```csharp title="Get the resolved published address"
+osc.PublishValue("Status", OscData.String("ready"), out string resolvedAddress);
+Debug.Log($"Published to {resolvedAddress}");
+```
+
+```csharp title="Get the resolved address for multi-value publishing"
+osc.PublishValues("Blend", new[]
+{
+    OscData.Float32(0.5f),
+    OscData.String("armed"),
+}, out string resolvedAddress);
+
+Debug.Log($"Published blend packet to {resolvedAddress}");
 ```
 
 You can publish several OSC data kinds, including booleans, integers, floats, strings, symbols, MIDI data, arrays, and blobs.
@@ -185,6 +222,27 @@ Remote-avatar `BasisOsc` components cannot publish. Do not assume remote avatar 
 <Callout type="warn">
 Do not assume a raw path is used exactly as typed. If the component has scope, `BasisOsc` may rewrite relative addresses or reject restricted absolute avatar paths.
 </Callout>
+
+## Address-Reporting Variants
+
+Several `BasisOsc` methods have overloads that return the normalized absolute path through an `out string resolvedAddress` parameter.
+
+The main variants you will usually use are:
+
+- `Subscribe(string, OscMessageEvent, out string resolvedAddress)`
+- `SubscribeValue(string, OscValueEvent, out string resolvedAddress)`
+- `SubscribePrefix(string, OscMessageEvent, out string resolvedAddress)`
+- `SubscribePrefixValue(string, OscValueEvent, out string resolvedAddress)`
+- `PublishValue(string, OscData, out string resolvedAddress)`
+- `PublishValues(string, OscData[], out string resolvedAddress)`
+
+These overloads are useful when:
+
+- you want to log the exact path that a relative address resolved to
+- you want to store the normalized address for later unsubscribe calls
+- you want scripts to explicitly know where a publish operation actually went
+
+There are no passive `Subscribe(...)` or `SubscribePrefix(...)` overloads. Subscriptions in `BasisOsc` are callback-driven, and `osc.OnMessage` is only raised when one of those callback-based subscriptions or `ReceiveAll` matches.
 
 ## OSC Query Behavior
 
