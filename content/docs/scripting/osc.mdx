@@ -77,6 +77,16 @@ osc.Subscribe("Face/Smile", OnSmileChanged, out string resolvedAddress);
 Debug.Log($"Subscribed to {resolvedAddress}");
 ```
 
+If you only want the subscription to exist on the local instance, use the `localOnly` overload. On remote avatars this does not register anything.
+
+```csharp title="Only subscribe on the local instance"
+osc.Subscribe("Face/Smile", OnSmileChanged, localOnly: true, out string resolvedAddress);
+if (resolvedAddress != null)
+{
+    Debug.Log($"Local-only subscription resolved to {resolvedAddress}");
+}
+```
+
 Use prefix subscriptions when you want every matching child address.
 
 ```csharp title="Prefix subscription"
@@ -107,6 +117,13 @@ osc.SubscribeValue("Speed", value =>
         Debug.Log($"Speed is now {value.FloatValue}");
     }
 });
+```
+
+```csharp title="Local-only value callback"
+osc.SubscribeValue("Speed", value =>
+{
+    Debug.Log($"Only the local instance will receive this callback: {value.Kind}");
+}, localOnly: true, out string resolvedAddress);
 ```
 
 ```csharp title="Prefix value callback"
@@ -230,7 +247,11 @@ Several `BasisOsc` methods have overloads that return the normalized absolute pa
 The main variants you will usually use are:
 
 - `Subscribe(string, OscMessageEvent, out string resolvedAddress)`
+- `Subscribe(string, OscMessageEvent, bool localOnly)`
+- `Subscribe(string, OscMessageEvent, bool localOnly, out string resolvedAddress)`
 - `SubscribeValue(string, OscValueEvent, out string resolvedAddress)`
+- `SubscribeValue(string, OscValueEvent, bool localOnly)`
+- `SubscribeValue(string, OscValueEvent, bool localOnly, out string resolvedAddress)`
 - `SubscribePrefix(string, OscMessageEvent, out string resolvedAddress)`
 - `SubscribePrefixValue(string, OscValueEvent, out string resolvedAddress)`
 - `PublishValue(string, OscData, out string resolvedAddress)`
@@ -241,6 +262,8 @@ These overloads are useful when:
 - you want to log the exact path that a relative address resolved to
 - you want to store the normalized address for later unsubscribe calls
 - you want scripts to explicitly know where a publish operation actually went
+
+For `Subscribe(...)` and `SubscribeValue(...)`, `localOnly: true` means the callback is only registered on the local instance. On remote avatars the resolved address is `null` and no subscription is added.
 
 There are no passive `Subscribe(...)` or `SubscribePrefix(...)` overloads. Subscriptions in `BasisOsc` are callback-driven, and `osc.OnMessage` is only raised when one of those callback-based subscriptions or `ReceiveAll` matches.
 
