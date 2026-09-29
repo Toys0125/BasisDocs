@@ -18,13 +18,13 @@ Client- en servercode **moeten overeenkomen** wat betreft de versie.
 
 ```csharp
 BasisNetworkCore\BasisNetworkVersion.cs
-5:        public static ushort ServerVersion = 6;
+5:        public static ushort ServerVersion = 29;
 ```
 </Callout>
 
 ## Uitvoeren met Docker
 
-Docker-compose gebruiken is de gemakkelijkste en snelste manier om een Basis-server op te starten. Docker-images van de server worden gepubliceerd naar GitHub op zowel de `long-term-support`- als de `developer`-branch, respectievelijk onder `latest` en `nightly`.
+Docker-compose gebruiken is de gemakkelijkste en snelste manier om een Basis-server op te starten. Docker-images van de server worden gepubliceerd naar GitHub op zowel de `long-term-support-20260425`- als de `developer`-branch, respectievelijk onder `latest` en `nightly`.
 
 ```yml
 services:
@@ -60,29 +60,36 @@ services:
 ``` 
 Voer eenmalig uit om `config.xml` te maken (onder `./config` in het voorbeeld). Instellingen in XML worden overschreven door omgevingsvariabelen.
 
+## Voorgebouwde binaries
+
+Voorgebouwde serverbinaries zijn beschikbaar via GitHub Actions-artifacts:
+
+- [Nightly developer-builds](https://nightly.link/BasisVR/Basis/workflows/compilation/developer?preview)
+- [Long-term support-builds](https://nightly.link/BasisVR/Basis/workflows/compilation/long-term-support-20260425?preview)
+
 ## Compileren en uitvoeren op Windows
 
 Ervan uitgaande dat je de LTS-branch van de repo hebt gekloond:
-`git clone -b long-term-support https://github.com/BasisVR/Basis.git`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis.git`
 
-Je vindt het Visual Studio Solution-bestand (sln) in de map `Basis Server`.
-Deze stappen gaan ervan uit dat Windows 11 wordt gebruikt met Microsoft Visual Studio Community 2022 (64-bit) - Versie 17.12.3.
+You will find the Visual Studio Solution file (sln) in the `Basis Server` directory.
+These steps assume Windows 11 using Microsoft Visual Studio Community 2026 (64-bit).
 
-De BasisNetworkConsole is het csproj dat je moet targeten voor compileren.
-Je kunt dit project selecteren in het startupitemsmenu bovenaan.
-Nadat het is geselecteerd, klik je op de groene pijl om te bouwen.
+The BasisNetworkConsole is the csproj you will need to target for compiling.
+You should be able to select that project from the start up item menu at the top.
+Once selected click the green arrow to build.
 
-Na het compileren navigeer je naar `\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\`
+Na het compileren navigeer je naar `\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\`
 om de server exe en gecompileerde afhankelijkheden te vinden.
 
 Om de server lokaal op Windows uit te voeren, open je een opdrachtprompt in deze map en voer je `.\BasisNetworkConsole.exe` uit.
 
-`\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0> .\BasisNetworkConsole.exe`
+`\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0> .\BasisNetworkConsole.exe`
 
 Dit zou een console moeten openen die zoiets als het volgende toont:
 
 ```txt title="Voorbeeld serverconsoluitvoer"
-[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\Logs\2025-05-10.log
+[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\Logs\2025-05-10.log
 [20:07] [INFO] Server Booting
 [20:07] [INFO] HTTP health check started at 'http://localhost:10666/health'
 [20:07] [INFO] Loaded Admins 0
@@ -113,13 +120,13 @@ rm packages-microsoft-prod.deb
 
 Ga daarna verder met de installatie:
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 ### Basis ophalen
 
 Navigeer naar de map waarnaar je Basis wilt downloaden en voer de volgende opdracht uit:
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 ### Basis Server bouwen
 
@@ -137,7 +144,7 @@ of
 
 ### Uitvoeren
 
-Navigeer naar de BasisServerConsole-map (zoiets als `/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`)
+Navigeer naar de BasisServerConsole-map (zoiets als `/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`)
 en voer uit:
 
 `dotnet .\.BasisNetworkConsole.dll`
@@ -146,7 +153,7 @@ en voer uit:
 
 Je kunt compileren met het volgende:
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
 De schakelaar `--self-contained` wordt toegevoegd om uitvoeren op een OS zonder dotnet mogelijk te maken.
 
@@ -154,7 +161,7 @@ Als je via deze methode compileert (of je build op het systeem heeft gericht), z
 
 `./BasisNetworkConsole`
 
-uit te voeren vanuit `BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`.
+uit te voeren vanuit `BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`.
 
 </Callout>
 

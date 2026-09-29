@@ -10,7 +10,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 伺服器上的多執行緒在可用核心越多時運行越好，但已證明在只有兩個核心的情況下也能良好運行。社交 VR 對頻寬要求很高，因此在選擇服務提供商時請牢記這一點。
 
-本文件適用於未修改的 Basis 伺服器：截至 2025 年 5 月的 LTS 分支第 6 版 {/* `commit 672035f0afe87b2fbe4e36bbd7f6cd340059d976` of lts branch */}
+本文件適用於未修改的 Basis 伺服器：`long-term-support-20260425` 分支第 29 版（2026 年 4 月）。
 
 <Callout type="info" title="關於伺服器版本的有用提示">
 您可以在從儲存庫克隆的程式碼中找到 **ServerVersion**。  
@@ -18,13 +18,13 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 ```csharp
 BasisNetworkCore\BasisNetworkVersion.cs
-5:        public static ushort ServerVersion = 6;
+5:        public static ushort ServerVersion = 29;
 ```
 </Callout>
 
 ## 使用 Docker 執行
 
-使用 docker-compose 是啟動 Basis 伺服器最簡單快捷的方式。伺服器的 Docker 映像在 GitHub 上同時發布在 `long-term-support` 和 `developer` 分支，分別以 `latest` 和 `nightly` 標識。
+使用 docker-compose 是啟動 Basis 伺服器最簡單快捷的方式。伺服器的 Docker 映像在 GitHub 上同時發布在 `long-term-support-20260425` 和 `developer` 分支，分別以 `latest` 和 `nightly` 標識。
 
 ```yml
 services:
@@ -60,29 +60,36 @@ services:
 ``` 
 執行一次以建立 `config.xml`（在範例中的 `./config` 下）。XML 中的設定將被環境變數覆蓋。
 
+## 預建二進位檔
+
+預建伺服器二進位檔可從 GitHub Actions artifacts 取得：
+
+- [Nightly developer builds](https://nightly.link/BasisVR/Basis/workflows/compilation/developer?preview)
+- [Long-term support builds](https://nightly.link/BasisVR/Basis/workflows/compilation/long-term-support-20260425?preview)
+
 ## 在 Windows 上編譯和執行
 
 假設您已克隆儲存庫的 LTS 分支。
-`git clone -b long-term-support https://github.com/BasisVR/Basis.git`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis.git`
 
-您將在 `Basis Server` 目錄中找到 Visual Studio 解決方案檔案 (sln)。
-這些步驟假設使用 Windows 11 和 Microsoft Visual Studio Community 2022 (64 位元) - 版本 17.12.3。
+You will find the Visual Studio Solution file (sln) in the `Basis Server` directory.
+These steps assume Windows 11 using Microsoft Visual Studio Community 2026 (64-bit).
 
-BasisNetworkConsole 是您編譯時需要的 csproj。
-您應該能夠從頂部的啟動項目選單中選擇該專案。
-選中後點擊綠色箭頭進行建置。
+The BasisNetworkConsole is the csproj you will need to target for compiling.
+You should be able to select that project from the start up item menu at the top.
+Once selected click the green arrow to build.
 
-編譯完成後，導覽至 `\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\`
+編譯完成後，導覽至 `\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\`
 以找到伺服器 exe 和編譯的相依性。
 
 要在 Windows 本地執行伺服器，在此目錄中開啟命令 shell 並執行 `.\BasisNetworkConsole.exe`
 
-`\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0> .\BasisNetworkConsole.exe`
+`\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0> .\BasisNetworkConsole.exe`
 
 這應該會開啟一個主控台並顯示類似以下內容：
 
 ```txt title="伺服器主控台輸出範例"
-[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\Logs\2025-05-10.log
+[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\Logs\2025-05-10.log
 [20:07] [INFO] Server Booting
 [20:07] [INFO] HTTP health check started at 'http://localhost:10666/health'
 [20:07] [INFO] Loaded Admins 0
@@ -113,13 +120,13 @@ rm packages-microsoft-prod.deb
 
 然後繼續安裝：
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 ### 取得 Basis
 
 切換到您希望下載 Basis 的資料夾，然後執行以下命令：
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 ### 建置 Basis 伺服器
 
@@ -137,7 +144,7 @@ rm packages-microsoft-prod.deb
 
 ### 執行
 
-導覽至 BasisServerConsole 目錄（類似 `/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`）
+導覽至 BasisServerConsole 目錄（類似 `/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`）
 並執行：
 
 `dotnet .\.BasisNetworkConsole.dll`
@@ -146,7 +153,7 @@ rm packages-microsoft-prod.deb
 
 您可以使用以下方式編譯：
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
 添加 `--self-contained` 開關是為了允許在沒有安裝 dotnet 的作業系統上執行。
 
@@ -154,7 +161,7 @@ rm packages-microsoft-prod.deb
 
 `./BasisNetworkConsole`
 
-從 `BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`。
+從 `BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`。
 
 </Callout>
 

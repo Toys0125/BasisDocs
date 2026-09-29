@@ -7,7 +7,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 {/*
 ## Введение
 
-Данный документ применим к немодифицированному серверу Basis: Версия 6, ветка LTS, май 2025 года.
+Данный документ применим к немодифицированному серверу Basis: Версия 29, ветка `long-term-support-20260425`, апрель 2026 года.
 */}
 
 ### Компиляция и запуск на Linux
@@ -27,13 +27,13 @@ rm packages-microsoft-prod.deb
 
 Продолжите установку:
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### Получение Basis
 
 Перейдите в нужную папку и выполните:
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### Сборка сервера Basis
 
@@ -57,9 +57,9 @@ rm packages-microsoft-prod.deb
 
 :::tip Для специализированного Linux-релиза
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
-Из `BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole` запустите `./BasisNetworkConsole`.
+Из `BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole` запустите `./BasisNetworkConsole`.
 
 :::
 
@@ -87,30 +87,136 @@ rm packages-microsoft-prod.deb
 
 ## Config.xml
 
-| Переменная               | По умолчанию          | Описание |
-|--------------------------|------------------------|-------------|
-| `PeerLimit`              | 1024                   | Максимальное количество игроков на сервере. |
-| `SetPort`                | 4296                   | Сетевой порт, на котором слушает сервер. |
-| `Password`               | default_password       | Пароль доступа к серверу по умолчанию. |
-| `HealthCheckHost`        | localhost              | Хост для проверок состояния. `*` для привязки к любому интерфейсу. |
-| `HealthCheckPort`        | 10666                  | Порт для проверок состояния. |
-| `UseAuth`                | true                   | Включить или отключить аутентификацию сервера. |
-| `UseAuthIdentity`        | true                   | Использовать верификацию DID при включённой аутентификации. |
+| Переменная | По умолчанию | Описание |
+|---|---|---|
+| `PeerLimit` | 65535 | Максимальное число подключённых peers. |
+| `SetPort` | 4296 | UDP-порт, на котором слушает сервер. |
+| `UseNativeSockets` | true | Использует нативные socket-вызовы ОС вместо managed-пути. |
+| `NatPunchEnabled` | false | Включает NAT punch-through для знакомства peers. |
+| `PingInterval` | 1500 | Интервал keep-alive ping, в миллисекундах. |
+| `DisconnectTimeout` | 30000 | Время без ответа до отключения peer, в миллисекундах. |
+| `SimulatePacketLoss` | false | Искусственно отбрасывает исходящие пакеты для тестов. |
+| `SimulateLatency` | false | Искусственно задерживает пакеты для тестов. |
+| `SimulationPacketLossChance` | 10 | Процент потери пакетов при включённой симуляции. |
+| `SimulationMinLatency` | 50 | Минимальная добавленная задержка, в миллисекундах. |
+| `SimulationMaxLatency` | 150 | Максимальная добавленная задержка, в миллисекундах. |
+| `ReconnectDelay` | 500 | Время перед попыткой переподключения. |
+| `MaxConnectAttempts` | 10 | Максимальное число попыток подключения. |
+| `ReuseAddresss` | false | Опция повторного использования socket; обратите внимание на написание поля. |
+| `DontRoute` | false | Опция маршрутизации socket. |
+| `EnableStatistics` | true | Собирает транспортную статистику для health/status отчётов. |
+| `IPv6Enabled` | true | Включает поддержку IPv6 dual-stack socket. |
+| `MtuOverride` | 0 | Принудительно задаёт MTU; 0 отключает переопределение. |
+| `MtuDiscovery` | true | Включает Path-MTU discovery. |
+| `DisconnectOnUnreachable` | false | Отключает при ICMP unreachable. |
+| `AllowPeerAddressChange` | true | Разрешает endpoint peer изменяться во время сессии. |
+| `HasFileSupport` | true | Разрешает запись логов, списков модерации, auth-идентичности и других данных на диск. |
+| `HealthCheckHost` | localhost | Host или интерфейс для health checks. Используйте * для всех интерфейсов. |
+| `HealthCheckPort` | 10666 | TCP-порт для health checks. |
+| `HealthPath` | /health | Путь endpoint health check. |
+| `BSRSMillisecondDefaultInterval` | 50 | Базовый интервал отправки Server Reduction System, в миллисекундах. |
+| `BSRBaseMultiplier` | 1 | Базовый множитель перед масштабированием по расстоянию. |
+| `BSRSIncreaseRate` | 0.005 | Как быстро интервалы отправки растут с расстоянием. |
+| `BSRSlowestSendRate` | 2.55 | Самая медленная частота отправки для удалённых peers. |
+| `HighQualityDistance` | 3 | Порог расстояния для синхронизации avatar высокого качества. |
+| `MediumQualityDistance` | 10 | Порог расстояния для синхронизации avatar среднего качества. |
+| `LowQualityDistance` | 20 | Порог расстояния для синхронизации avatar низкого качества. |
+| `OverrideAutoDiscoveryOfIpv` | false | Привязывает ровно настроенные адреса вместо автоопределения версии IP. |
+| `IPv4Address` | 0.0.0.0 | IPv4-адрес привязки. |
+| `IPv6Address` | ::1 | IPv6-адрес привязки. |
+| `Password` | default_password | Пароль доступа к серверу. |
+| `UseAuth` | true | Включает или отключает парольную аутентификацию. |
+| `UseAuthIdentity` | true | Требует проверку DID-идентичности, когда auth включён. |
+| `BasisUserRestrictionMode` | Normal | Режим ограничения входа: Normal, BlackList или WhiteList. |
+| `HowManyDuplicateAuthCanExist` | 2 | Число одновременных подключений для одной auth-идентичности. |
+| `AuthValidationTimeOutMiliseconds` | 9000 | Timeout auth-проверки, в миллисекундах. |
+| `EnableConsole` | true | Включает интерактивную консоль сервера. |
+| `DisableWriteUnlessAdminPersistentFlag` | true | Отклоняет постоянные key/value записи, если вызывающий не admin. |
+| `DisableReadUnlessAdminPersistentFlag` | false | Отклоняет постоянные key/value чтения, если вызывающий не admin. |
+| `UseNetworkFinalCompression` | false | Включает финальный проход сетевого сжатия. |
+| `EnableBSRProfiling` | false | Выводит profiling Server Reduction System. |
+| `DisallowHeadless` | false | Отклоняет headless-клиентов при подключении. |
+| `AvatarsLocked` | false | Блокирует загрузку avatar для пользователей без bypass-права. |
+| `PropsLocked` | false | Блокирует загрузку props для пользователей без bypass-права. |
+| `WorldsLocked` | true | Блокирует загрузку worlds для пользователей без bypass-права. |
 
-<small>Низкоуровневое сетевое взаимодействие обрабатывается сторонней библиотекой <strong>LiteNetLib</strong>. Переменные конфигурации, связанные с этим кодом, отмечены <code>LNL</code>.</small>
+<small>Любая переменная окружения, имя которой совпадает с публичным полем конфигурации, переопределяет это поле при запуске.</small>
+
+### Настройки аутентификации
+
+```xml
+<UseAuth>true</UseAuth>
+```
+
+```xml
+<UseAuthIdentity>true</UseAuthIdentity>
+```
+
+```xml
+<BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+```
+
+```xml
+<HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+```
 
 ### Пример Config.xml
+
+Стандартные настройки, которые можно найти в config.xml:
 
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <Password>default_password</Password>
+  <UseNativeSockets>true</UseNativeSockets>
+  <NatPunchEnabled>false</NatPunchEnabled>
+  <PingInterval>1500</PingInterval>
+  <DisconnectTimeout>30000</DisconnectTimeout>
+  <SimulatePacketLoss>false</SimulatePacketLoss>
+  <SimulateLatency>false</SimulateLatency>
+  <SimulationPacketLossChance>10</SimulationPacketLossChance>
+  <SimulationMinLatency>50</SimulationMinLatency>
+  <SimulationMaxLatency>150</SimulationMaxLatency>
+  <ReconnectDelay>500</ReconnectDelay>
+  <MaxConnectAttempts>10</MaxConnectAttempts>
+  <ReuseAddresss>false</ReuseAddresss>
+  <DontRoute>false</DontRoute>
+  <EnableStatistics>true</EnableStatistics>
+  <IPv6Enabled>true</IPv6Enabled>
+  <MtuOverride>0</MtuOverride>
+  <MtuDiscovery>true</MtuDiscovery>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
+  <AllowPeerAddressChange>true</AllowPeerAddressChange>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
+  <HealthPath>/health</HealthPath>
+  <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
+  <BSRBaseMultiplier>1</BSRBaseMultiplier>
+  <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
+  <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
+  <IPv4Address>0.0.0.0</IPv4Address>
+  <IPv6Address>::1</IPv6Address>
+  <Password>default_password</Password>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
+  <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+  <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+  <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

@@ -7,7 +7,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 {/*
 ## 介绍
 
-本文档适用于 LTS 分支的未修改 Basis 服务器第 6 版（2025 年 5 月）。
+本文档适用于 `long-term-support-20260425` 分支的未修改 Basis 服务器第 29 版（2026 年 4 月）。
 */}
 
 ### 在 Linux 上编译和运行
@@ -27,13 +27,13 @@ rm packages-microsoft-prod.deb
 
 然后继续安装：
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### 获取 Basis
 
 切换到所需文件夹并执行：
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### 构建 Basis 服务器
 
@@ -57,9 +57,9 @@ rm packages-microsoft-prod.deb
 
 :::tip 用于更精确的 Linux 发布版本
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
-从 `BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole` 运行 `./BasisNetworkConsole`。
+从 `BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole` 运行 `./BasisNetworkConsole`。
 
 :::
 
@@ -87,30 +87,140 @@ rm packages-microsoft-prod.deb
 
 ## Config.xml
 
-| 变量                     | 默认值                | 描述 |
-|--------------------------|------------------------|-------------|
-| `PeerLimit`              | 1024                   | 服务器允许的最大玩家数量。 |
-| `SetPort`                | 4296                   | 服务器监听的网络端口。 |
-| `Password`               | default_password       | 默认服务器访问密码。 |
-| `HealthCheckHost`        | localhost              | 健康检查使用的主机名。使用 `*` 绑定到任何接口。 |
-| `HealthCheckPort`        | 10666                  | 健康检查使用的端口。 |
-| `UseAuth`                | true                   | 启用或禁用服务器身份验证。 |
-| `UseAuthIdentity`        | true                   | 认证开启时使用 DID 身份验证。 |
+| 变量 | 默认值 | 描述 |
+|---|---|---|
+| `PeerLimit` | 65535 | 已连接 peer 的最大数量。 |
+| `SetPort` | 4296 | 服务器监听的 UDP 端口。 |
+| `UseNativeSockets` | true | 使用操作系统原生 socket 调用，而不是托管路径。 |
+| `NatPunchEnabled` | false | 启用用于 peer 引介的 NAT punch-through。 |
+| `PingInterval` | 1500 | keep-alive ping 间隔，单位为毫秒。 |
+| `DisconnectTimeout` | 30000 | peer 无响应多久后断开连接，单位为毫秒。 |
+| `SimulatePacketLoss` | false | 为测试人为丢弃传出数据包。 |
+| `SimulateLatency` | false | 为测试人为延迟数据包。 |
+| `SimulationPacketLossChance` | 10 | 启用丢包模拟时的丢包百分比。 |
+| `SimulationMinLatency` | 50 | 最小附加延迟，单位为毫秒。 |
+| `SimulationMaxLatency` | 150 | 最大附加延迟，单位为毫秒。 |
+| `ReconnectDelay` | 500 | 尝试重新连接前的等待时间。 |
+| `MaxConnectAttempts` | 10 | 最大连接尝试次数。 |
+| `ReuseAddresss` | false | socket 地址复用选项；注意字段拼写。 |
+| `DontRoute` | false | socket 路由选项。 |
+| `EnableStatistics` | true | 收集传输统计信息，用于健康和状态报告。 |
+| `IPv6Enabled` | true | 启用 IPv6 dual-stack socket 支持。 |
+| `MtuOverride` | 0 | 强制固定 MTU；0 表示禁用覆盖。 |
+| `MtuDiscovery` | true | 启用 Path-MTU 发现。 |
+| `DisconnectOnUnreachable` | false | 收到 ICMP unreachable 时断开连接。 |
+| `AllowPeerAddressChange` | true | 允许 peer endpoint 在会话期间变化。 |
+| `HasFileSupport` | true | 启用日志、审核列表、auth 身份数据和其他磁盘数据写入。 |
+| `HealthCheckHost` | localhost | health check 使用的主机或接口。使用 * 绑定所有接口。 |
+| `HealthCheckPort` | 10666 | health check 使用的 TCP 端口。 |
+| `HealthPath` | /health | health check endpoint 路径。 |
+| `BSRSMillisecondDefaultInterval` | 50 | Server Reduction System 的基础发送间隔，单位为毫秒。 |
+| `BSRBaseMultiplier` | 1 | 距离缩放前应用的基础倍数。 |
+| `BSRSIncreaseRate` | 0.005 | 发送间隔随距离增长的速度。 |
+| `BSRSlowestSendRate` | 2.55 | 为远距离 peer 提供给客户端的最慢发送速率。 |
+| `HighQualityDistance` | 3 | 高质量 avatar 同步的距离阈值。 |
+| `MediumQualityDistance` | 10 | 中质量 avatar 同步的距离阈值。 |
+| `LowQualityDistance` | 20 | 低质量 avatar 同步的距离阈值。 |
+| `OverrideAutoDiscoveryOfIpv` | false | 绑定精确配置的地址，而不是自动检测 IP 版本。 |
+| `IPv4Address` | 0.0.0.0 | IPv4 绑定地址。 |
+| `IPv6Address` | ::1 | IPv6 绑定地址。默认值 `::1` 仅绑定本机；如需和 `IPv4Address` 的 `0.0.0.0` 一样监听所有 IPv6 接口，请改为 `::`。 |
+| `Password` | default_password | 服务器访问密码。 |
+| `UseAuth` | true | 启用或禁用密码认证。 |
+| `UseAuthIdentity` | true | 启用 auth 时要求 DID 身份验证。 |
+| `BasisUserRestrictionMode` | Normal | 加入限制模式：Normal、BlackList 或 WhiteList。 |
+| `HowManyDuplicateAuthCanExist` | 2 | 同一 auth 身份允许的同时连接数。 |
+| `AuthValidationTimeOutMiliseconds` | 9000 | auth 验证超时，单位为毫秒。 |
+| `EnableConsole` | true | 启用交互式服务器控制台。 |
+| `DisableWriteUnlessAdminPersistentFlag` | true | 如果调用者不是 admin，则拒绝持久 key/value 写入。 |
+| `DisableReadUnlessAdminPersistentFlag` | false | 如果调用者不是 admin，则拒绝持久 key/value 读取。 |
+| `UseNetworkFinalCompression` | false | 启用最终网络压缩步骤。 |
+| `EnableBSRProfiling` | false | 输出 Server Reduction System profiling 信息。 |
+| `DisallowHeadless` | false | 连接时拒绝 headless 客户端。 |
+| `AvatarsLocked` | false | 阻止没有 bypass 权限的用户加载 avatar。 |
+| `PropsLocked` | false | 阻止没有 bypass 权限的用户加载 prop。 |
+| `WorldsLocked` | true | 阻止没有 bypass 权限的用户加载 world。 |
 
-<small>底层网络由名为 <strong>LiteNetLib</strong> 的第三方库处理。与此代码相关的配置变量标记为 <code>LNL</code>。</small>
+<small>任何名称与公共配置字段匹配的环境变量将在启动时覆盖该字段。</small>
+
+<Callout type="warn" title="更改默认密码">
+`Password` 字段的默认值是 `default_password`。在生产环境中运行服务器前请务必更改该值，并使用强随机密码或生成的密钥。
+</Callout>
+
+### 身份验证设置
+
+```xml
+<UseAuth>true</UseAuth>
+```
+
+```xml
+<UseAuthIdentity>true</UseAuthIdentity>
+```
+
+```xml
+<BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+```
+
+```xml
+<HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+```
 
 ### Config.xml 示例
+
+您可能在 config.xml 中看到的默认设置：
 
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <Password>default_password</Password>
+  <UseNativeSockets>true</UseNativeSockets>
+  <NatPunchEnabled>false</NatPunchEnabled>
+  <PingInterval>1500</PingInterval>
+  <DisconnectTimeout>30000</DisconnectTimeout>
+  <SimulatePacketLoss>false</SimulatePacketLoss>
+  <SimulateLatency>false</SimulateLatency>
+  <SimulationPacketLossChance>10</SimulationPacketLossChance>
+  <SimulationMinLatency>50</SimulationMinLatency>
+  <SimulationMaxLatency>150</SimulationMaxLatency>
+  <ReconnectDelay>500</ReconnectDelay>
+  <MaxConnectAttempts>10</MaxConnectAttempts>
+  <ReuseAddresss>false</ReuseAddresss>
+  <DontRoute>false</DontRoute>
+  <EnableStatistics>true</EnableStatistics>
+  <IPv6Enabled>true</IPv6Enabled>
+  <MtuOverride>0</MtuOverride>
+  <MtuDiscovery>true</MtuDiscovery>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
+  <AllowPeerAddressChange>true</AllowPeerAddressChange>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
+  <HealthPath>/health</HealthPath>
+  <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
+  <BSRBaseMultiplier>1</BSRBaseMultiplier>
+  <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
+  <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
+  <IPv4Address>0.0.0.0</IPv4Address>
+  <IPv6Address>::1</IPv6Address>
+  <Password>default_password</Password>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
+  <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+  <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+  <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

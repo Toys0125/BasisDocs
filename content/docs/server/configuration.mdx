@@ -14,7 +14,7 @@ The multithreading on the server runs best the more cores avaiable but it has be
 on as little as two cores. Social VR demands a lot of bandwidth so you'll want to keep that in mind when picking your
 service provider. 
 
-This doc applies to an Unmodified Basis Server: Version 6 from the LTS branch as of May 2025 of lts branch
+This doc applies to an unmodified Basis Server: Version 29 from the `long-term-support-20260425` branch.
 
 :::tip Helpful Tip about Server Version
 You can find the **ServerVersion** in the code you cloned from the repo.  
@@ -22,7 +22,7 @@ Client and server code **must agree** on the version.
 
 ```csharp
 BasisNetworkCore\BasisNetworkVersion.cs
-5:        public static ushort ServerVersion = 6;
+5:        public static ushort ServerVersion = 29;
 ```
 :::
 
@@ -31,7 +31,7 @@ BasisNetworkCore\BasisNetworkVersion.cs
 
 ### Run with Docker
 
-Using docker-compose is the easiest and fastest way to spin up a Basis server. Docker images of the server are published to github on both `long-term-support` and `developer` branches, under `latest` and `nightly` respectively.
+Using docker-compose is the easiest and fastest way to spin up a Basis server. Docker images of the server are published to github on both `long-term-support*` and `developer` branches, under `latest` and `nightly` respectively.
 
 ```yml
 services:
@@ -70,27 +70,26 @@ Run once to create `config.xml` (under `./config` in the example). Settings in x
 ### Compile and Run on Windows
 
 Assuming you have cloned the LTS branch of the repo.
-`git clone -b long-term-support https://github.com/BasisVR/Basis.git`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis.git`
 
 You will find the Visual Studio Solution file (sln) in the `Basis Server` directory.
-These steps assume Windows 11 using Microsoft Visual Studio Community 2022 (64-bit) - Version 17.12.3
-
+These steps assume Windows 11 using Microsoft Visual Studio Community 2026 (64-bit).
 
 The BasisNetworkConsole is the csproj you will need to target for compiling.
-You should be able to select that project from the start up item menu at the top. 
-Once selected click the green arrow to build. 
+You should be able to select that project from the start up item menu at the top.
+Once selected click the green arrow to build.
 
-Once compiled, navigate to  `\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\`
+Once compiled, navigate to  `\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\`
 to find the server exe and compiled dependencies.
 
 To run the server on Windows locally, open a command shell in this directory and run `.\BasisNetworkConsole.exe`
 
-`\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0> .\BasisNetworkConsole.exe`
+`\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0> .\BasisNetworkConsole.exe`
 
 This should open a console and show something like the following:
 
 ``` title="Example Server Console Output"
-[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\Logs\2025-05-10.log
+[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\Logs\2025-05-10.log
 [20:07] [INFO] Server Booting
 [20:07] [INFO] HTTP health check started at 'http://localhost:10666/health'
 [20:07] [INFO] Loaded Admins 0
@@ -126,13 +125,13 @@ rm packages-microsoft-prod.deb
 
 Then continue installation:
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### Get Basis
 
 Change to the folder you wish to download Basis to, and execute the following command:
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### Build Basis Server
 
@@ -150,7 +149,7 @@ or
 
 #### Executing
 
-Navigate to the BasisServerConsole directory (Something like `/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`)
+Navigate to the BasisServerConsole directory (Something like `/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`)
 and run:
 
 `dotnet .\BasisNetworkConsole.dll`
@@ -159,7 +158,7 @@ and run:
 
 You may compile with the following:
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
 The `--self-contained` switch is added to allow running on a OS without dotnet installed.
 
@@ -167,7 +166,7 @@ If you compile via this method (Or your build targeted the system) are on a you 
 
 `./BasisNetworkConsole`
 
-from `BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`.
+from `BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`.
 
 :::
 
@@ -198,53 +197,58 @@ the directory the server exe rests in.
 
 | Variable                            | Default               | Description |
 |-------------------------------------|------------------------|-------------|
-| `PeerLimit`                         | 1024                   | Maximum number of players allowed on server. |
-| `SetPort`                           | 4296                   | Network port the server listens on. |
-| `QueueEvents`                       | 10                     |   |
-| `UseNativeSockets`                  | true                   | LNL: Use system-native socket implementation |
-| `NatPunchEnabled`                   | true                   | LNL: Enable NAT punch-through |
-| `PingInterval`                      | 1500                   | LNL:  |
-| `DisconnectTimeout`                | 5000                   | LNL: Time to wait before disconnecting player  |
-| `SimulatePacketLoss`               | false                  | Simulate packet loss for testing. |
-| `SimulateLatency`                  | false                  | Simulate network latency. |
-| `SimulationPacketLossChance`      | 10                     |  |
-| `SimulationMinLatency`            | 50                     | Minimum simulated latency. |
-| `SimulationMaxLatency`            | 150                    | Maximum simulated latency. |
-| `UnsyncedEvents`                   | false                  |  |
-| `UnsyncedReceiveEvent`            | false                  |  |
-| `UnsyncedDeliveryEvent`           | false                  |  |
-| `ReconnectDelay`                   | 500                    | Time before attempting reconnect. |
-| `MaxConnectAttempts`              | 10                     | Max number of reconnect attempts. |
-| `ReuseAddress`                     | true                   |  |
-| `DontRoute`                        | false                  |  |
-| `EnableStatistics`                 | true                   | LNL:  |
-| `IPv6Enabled`                      | true                   | LNL: Enable IPv6 support. |
-| `MtuOverride`                      | 1500                   | Override MTU (Maximum Transmission Unit). |
-| `MtuDiscovery`                     | true                   | Enable automatic MTU discovery. |
-| `DisconnectOnUnreachable`         | true                   | Disconnect players if unreachable. |
-| `AllowPeerAddressChange`          | true                   | LNL: Allow player clients to change IP address. |
-| `UsingLoggingFile`                | true                   | Enable logging to file. |
-| `HealthCheckHost`                 | localhost              | Hostname used for health checks. Use `*` to bind to any interface. |
-| `HealthCheckPort`                 | 10666                  | Port used for health checks. |
-| `HealthPath`                       | /health                | Path to health check endpoint. |
-| `BSRSMillisecondDefaultInterval`  | 50                     |  |
-| `BSRBaseMultiplier`               | 1                      |  |
-| `BSRSIncreaseRate`                | 0.005                  |  |
-| `OverrideAutoDiscoveryOfIpv`      | false                  |  |
-| `IPv4Address`                      | 0.0.0.0                | IPv4 bind address. |
-| `IPv6Address`                      | ::1                    | IPv6 bind address. |
-| `PromethusPort`                   | 1234                   | Port for Prometheus metrics. |
-| `PromethusUrl`                    | /metrics               | URL path for Prometheus metrics. |
-| `Password`                         | default_password       | Default server access password. |
-| `MinThreadPoolThreads`            | 100                    | Minimum number of thread pool threads. |
-| `MaxThreadPoolThreads`            | 500                    | Maximum number of thread pool threads. |
-| `UseAuth`                          | true                   | Enable or disable the server authentication. |
-| `UseAuthIdentity`                 | true                   | Use DID identity verification when auth is on. |
-| `BasisUserRestrictionMode`        | Normal                 | Pertains to the user mod tools. Not completed at this time. |
-| `HowManyDuplicateAuthCanExist`   | 2                      | Number of times the same player can be authenticated at the same time. |
-| `AuthValidationTimeOutMiliseconds` | 9000                 | Timeout for auth validation (ms). |
+| `PeerLimit`                         | 65535                  | Maximum number of connected peers. |
+| `SetPort`                           | 4296                   | UDP port the server listens on. |
+| `UseNativeSockets`                  | true                   | Use OS-native socket calls instead of the managed path. |
+| `NatPunchEnabled`                   | false                  | Enable NAT punch-through for peer introduction. |
+| `PingInterval`                      | 1500                   | Interval between keep-alive pings, in milliseconds. |
+| `DisconnectTimeout`                 | 30000                  | Time with no response before disconnecting a peer, in milliseconds. |
+| `SimulatePacketLoss`                | false                  | Artificially drop outgoing packets for testing. |
+| `SimulateLatency`                   | false                  | Artificially delay packets for testing. |
+| `SimulationPacketLossChance`        | 10                     | Packet-loss percentage when packet-loss simulation is enabled. |
+| `SimulationMinLatency`              | 50                     | Minimum added latency, in milliseconds. |
+| `SimulationMaxLatency`              | 150                    | Maximum added latency, in milliseconds. |
+| `ReconnectDelay`                    | 500                    | Time before attempting reconnect. |
+| `MaxConnectAttempts`                | 10                     | Max number of reconnect attempts. |
+| `ReuseAddresss`                     | false                  | Socket reuse option; note the field spelling. |
+| `DontRoute`                         | false                  | Socket routing option. |
+| `EnableStatistics`                  | true                   | Collect transport statistics for health/status reporting. |
+| `IPv6Enabled`                       | true                   | Enable IPv6 dual-stack socket support. |
+| `MtuOverride`                       | 0                      | Force a fixed MTU; `0` disables override. |
+| `MtuDiscovery`                      | true                   | Enable path-MTU discovery. |
+| `DisconnectOnUnreachable`           | false                  | Disconnect on ICMP unreachable. |
+| `AllowPeerAddressChange`            | true                   | Allow a peer endpoint to change mid-session. |
+| `HasFileSupport`                    | true                   | Enables writing logs, moderation lists, auth identity data, and other disk-backed files. |
+| `HealthCheckHost`                   | localhost              | Host/interface used for health checks. Use `*` to bind to any interface. |
+| `HealthCheckPort`                   | 10666                  | TCP port used for health checks. |
+| `HealthPath`                        | /health                | Path to health check endpoint. |
+| `BSRSMillisecondDefaultInterval`    | 50                     | Base send interval in milliseconds for the server reduction system. |
+| `BSRBaseMultiplier`                 | 1                      | Base multiplier applied before distance scaling. |
+| `BSRSIncreaseRate`                  | 0.005                  | How quickly send intervals grow with distance. |
+| `BSRSlowestSendRate`                | 2.55                   | Slowest send-rate floor handed to clients for distant peers. |
+| `HighQualityDistance`               | 3                      | Distance threshold for high-quality avatar sync. |
+| `MediumQualityDistance`             | 10                     | Distance threshold for medium-quality avatar sync. |
+| `LowQualityDistance`                | 20                     | Distance threshold for low-quality avatar sync. |
+| `OverrideAutoDiscoveryOfIpv`        | false                  | Bind exactly the configured addresses instead of auto-discovering IP version. |
+| `IPv4Address`                       | 0.0.0.0                | IPv4 bind address. |
+| `IPv6Address`                       | ::                     | IPv6 bind address. |
+| `Password`                          | default_password       | Server access password. |
+| `UseAuth`                           | true                   | Enable or disable password authentication. |
+| `UseAuthIdentity`                   | true                   | Require DID identity verification when auth is enabled. |
+| `BasisUserRestrictionMode`          | Normal                 | Player join restriction mode: `Normal`, `BlackList`, or `WhiteList`. |
+| `HowManyDuplicateAuthCanExist`      | 2                      | Number of simultaneous connections allowed for the same auth identity. |
+| `AuthValidationTimeOutMiliseconds`  | 9000                   | Timeout for auth validation, in milliseconds. |
+| `EnableConsole`                     | true                   | Enable the interactive server console. |
+| `DisableWriteUnlessAdminPersistentFlag` | true              | Reject persistent key/value writes unless the caller is an admin. |
+| `DisableReadUnlessAdminPersistentFlag`  | false             | Reject persistent key/value reads unless the caller is an admin. |
+| `UseNetworkFinalCompression`        | false                  | Enable final network compression pass. |
+| `EnableBSRProfiling`                | false                  | Emit server reduction system profiling output. |
+| `DisallowHeadless`                  | false                  | Reject headless clients from connecting. |
+| `AvatarsLocked`                     | false                  | Block avatar loading for users without bypass permission. |
+| `PropsLocked`                       | false                  | Block prop loading for users without bypass permission. |
+| `WorldsLocked`                      | true                   | Block world loading for users without bypass permission. |
 
-<small>The lower-level networking is handled by a third-party library called <strong>LiteNetLib</strong>. Config variables related to this code are marked <code>LNL</code>.</small>
+<small>Any environment variable whose name matches a public config field overrides that field at launch.</small>
 
 ### Authentication Settings
 
@@ -275,51 +279,56 @@ The default settings you may find in the config.xml:
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <QueueEvents>10</QueueEvents>
   <UseNativeSockets>true</UseNativeSockets>
-  <NatPunchEnabled>true</NatPunchEnabled>
+  <NatPunchEnabled>false</NatPunchEnabled>
   <PingInterval>1500</PingInterval>
-  <DisconnectTimeout>5000</DisconnectTimeout>
+  <DisconnectTimeout>30000</DisconnectTimeout>
   <SimulatePacketLoss>false</SimulatePacketLoss>
   <SimulateLatency>false</SimulateLatency>
   <SimulationPacketLossChance>10</SimulationPacketLossChance>
   <SimulationMinLatency>50</SimulationMinLatency>
   <SimulationMaxLatency>150</SimulationMaxLatency>
-  <UnsyncedEvents>false</UnsyncedEvents>
-  <UnsyncedReceiveEvent>false</UnsyncedReceiveEvent>
-  <UnsyncedDeliveryEvent>false</UnsyncedDeliveryEvent>
   <ReconnectDelay>500</ReconnectDelay>
   <MaxConnectAttempts>10</MaxConnectAttempts>
-  <ReuseAddress>true</ReuseAddress>
+  <ReuseAddresss>false</ReuseAddresss>
   <DontRoute>false</DontRoute>
   <EnableStatistics>true</EnableStatistics>
   <IPv6Enabled>true</IPv6Enabled>
-  <MtuOverride>1500</MtuOverride>
+  <MtuOverride>0</MtuOverride>
   <MtuDiscovery>true</MtuDiscovery>
-  <DisconnectOnUnreachable>true</DisconnectOnUnreachable>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
   <AllowPeerAddressChange>true</AllowPeerAddressChange>
-  <UsingLoggingFile>true</UsingLoggingFile>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
   <HealthPath>/health</HealthPath>
   <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
   <BSRBaseMultiplier>1</BSRBaseMultiplier>
   <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
   <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
   <IPv4Address>0.0.0.0</IPv4Address>
-  <IPv6Address>::1</IPv6Address>
-  <PromethusPort>1234</PromethusPort>
-  <PromethusUrl>/metrics</PromethusUrl>
+  <IPv6Address>::</IPv6Address>
   <Password>default_password</Password>
-  <MinThreadPoolThreads>100</MinThreadPoolThreads>
-  <MaxThreadPoolThreads>500</MaxThreadPoolThreads>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
   <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
   <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
   <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

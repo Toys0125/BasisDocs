@@ -1,0 +1,87 @@
+---
+title: Restricciones
+description: Componentes de restricciones disponibles en Basis y compatibilidad automática con huesos twist del brazo.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Las restricciones describen cómo un Transform puede influir en otro. Pueden mover un objeto, orientarlo hacia un objetivo, resolver una cadena de huesos o conservar la relación entre varias referencias.
+
+Basis proporciona sus propios componentes de restricciones y los evalúa como parte del tiempo de ejecución del avatar. Si conviertes un avatar de Unity, los nombres de Unity y Animation Rigging indican qué componentes conocidos corresponden a cada restricción de Basis.
+
+Basis define actualmente **14 tipos concretos de restricciones** en `BasisConstraintType`.
+
+## Restricciones de transformación
+
+Estas restricciones son útiles cuando el resultado principal debe ser una posición, rotación, escala o relación parecida a la de un padre.
+
+- **Posición** — `BasisPositionConstraint` mezcla la posición de un Transform a partir de una o varias fuentes con peso. Las máscaras de ejes limitan la influencia a determinados ejes y los offsets evitan que el objetivo salte directamente sobre la fuente. Corresponde a `PositionConstraint` de Unity y `MultiPositionConstraint` de Animation Rigging.
+
+- **Rotación** — `BasisRotationConstraint` mezcla la rotación de una o varias fuentes. Las máscaras por eje y los offsets de rotación permiten conservar parte de la pose original. Corresponde a `RotationConstraint` de Unity y `MultiRotationConstraint` de Animation Rigging.
+
+- **Escala** — `BasisScaleConstraint` mezcla la escala de un Transform a partir de una o varias fuentes. Corresponde a `ScaleConstraint` de Unity.
+
+- **Parent** — `BasisParentConstraint` combina posición y rotación para que un objeto siga fuentes parecidas a padres sin cambiar su jerarquía. Corresponde a `ParentConstraint` de Unity y `MultiParentConstraint` de Animation Rigging.
+
+### Ejemplo: una restricción Parent
+
+El ejemplo del Inspector muestra un `Basis Parent Constraint` con dos Transforms fuente. Cada fuente tiene un peso de `1`, por lo que el objeto restringido recibe el resultado combinado de `Point L` y `Point R`.
+
+La sección **Parent** guarda la posición y la rotación del objetivo en reposo y permite congelar ejes individuales de posición o rotación. **Per-Source Offsets** mantiene un offset de posición y rotación separado para cada fuente, de modo que el objetivo pueda seguirla sin colocarse directamente encima.
+
+![Basis Parent Constraint con dos fuentes ponderadas](/img/avatars/basis-parent-constraint.png)
+
+## Restricciones de dirección y movimiento
+
+Úsalas cuando un Transform deba mirar hacia un objetivo, mezclarse entre poses o seguir otra cosa con un movimiento específico.
+
+- **Aim** — `BasisAimConstraint` rota un objeto para que un eje local configurado apunte hacia las posiciones ponderadas de sus fuentes. Corresponde a `AimConstraint` de Unity y `MultiAimConstraint` de Animation Rigging.
+
+- **Look At** — `BasisLookAtConstraint` gira un objeto hacia las posiciones fuente mediante una resolución de tipo look-at. Corresponde a `LookAtConstraint` de Unity.
+
+- **Blend** — `BasisBlendConstraint` mezcla posición y rotación entre dos fuentes. Es útil cuando un Transform debe desplazarse gradualmente entre dos referencias. Corresponde a `BlendConstraint` de Animation Rigging.
+
+- **Override Transform** — `BasisOverrideTransform` reemplaza o desplaza la posición y la rotación de un Transform. Puede aplicar el override respecto a una fuente para corregir una pose de forma controlada. Corresponde a `OverrideTransform` de Animation Rigging.
+
+- **Damped Transform** — `BasisDampedTransform` sigue una fuente con movimiento posicional y rotacional amortiguado. El objetivo alcanza la fuente poco a poco en vez de saltar inmediatamente. Corresponde a `DampedTransform` de Animation Rigging.
+
+## Restricciones IK y twist
+
+Estas restricciones resuelven relaciones entre varios huesos en lugar de tratar cada Transform de forma independiente.
+
+- **Twist Correction** — `BasisTwistCorrection` extrae el giro axial de una fuente y aplica una parte ponderada a un nodo twist. Corresponde a `TwistCorrection` de Animation Rigging.
+
+- **Two-Bone IK** — `BasisTwoBoneIK` resuelve una cadena de tres articulaciones, como brazo superior, antebrazo y mano, hacia un objetivo. Un hint opcional ayuda a controlar la dirección en la que se dobla la articulación central. Corresponde a `TwoBoneIKConstraint` de Animation Rigging.
+
+- **Chain IK** — `BasisChainIK` resuelve una cadena de varios huesos hacia un objetivo. Corresponde a `ChainIKConstraint` de Animation Rigging.
+
+- **Twist Chain** — `BasisTwistChain` distribuye el twist entre los objetivos raíz y punta de una cadena. Durante la conversión, Basis crea un componente por cada hueso de la cadena. Corresponde a `TwistChainConstraint` de Animation Rigging.
+
+## Relaciones entre referencias
+
+- **Multi-Referential** — `BasisMultiReferential` conserva la relación entre varios Transforms de referencia. Una referencia seleccionada actúa como controladora y las demás siguen su relación. Corresponde a `MultiReferentialConstraint` de Animation Rigging.
+
+## Datos compartidos de las restricciones
+
+Estos tipos forman parte del sistema de restricciones, pero no son componentes concretos que se añadan como comportamientos independientes.
+
+- `BasisConstraintBase` es el componente base común. Guarda el peso, el estado activo y bloqueado, los datos de las fuentes y el orden de evaluación definido por el autor.
+
+- `BasisConstraintSourceEntry` representa una fuente. Contiene el `Transform` fuente y su peso relativo.
+
+- `BasisConstraintAxes` controla los ejes afectados por una restricción. Sus valores son `None`, `X`, `Y`, `Z` y `All`.
+
+- `BasisConstraintWorldUp` selecciona la referencia superior cuando una restricción necesita una dirección up. Sus valores son `SceneUp`, `ObjectUp`, `ObjectRotationUp`, `Vector` y `None`.
+
+## Compatibilidad automática con huesos twist del brazo
+
+Basis incluye la generación y el soporte automáticos de huesos twist del brazo como parte de su flujo de IK de cuerpo completo. No está representado por un componente `BasisConstraintBase`, por lo que no aparece como una restricción independiente en la jerarquía.
+
+El comportamiento está implementado en `BasisFullIKConstraintJob`. Después de resolver el IK del brazo, Basis:
+
+1. Busca hijos directos de los huesos del brazo superior e inferior cuyos nombres contienen `twist` o `roll`.
+2. Vincula esos Transforms al trabajo de IK de cuerpo completo.
+3. Ejecuta el paso de los huesos twist después de resolver el brazo.
+4. Escribe directamente la rotación mundial del hueso twist detectado.
+
+Por eso, un hueso twist puede tener un controlador de rotación aunque no tenga un `BasisRotationConstraint`. Si investigas un conflicto, revisa también los hijos directos de la jerarquía del brazo además de los componentes de restricciones.

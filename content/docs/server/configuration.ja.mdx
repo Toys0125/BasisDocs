@@ -7,7 +7,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 {/*
 ## はじめに
 
-BasisサーバーはLTS ブランチのバージョン6（2025年5月）を対象としています。
+Basisサーバーは `long-term-support-20260425` ブランチのバージョン29（2026年4月）を対象としています。
 */}
 
 ### Linuxでコンパイルして実行する
@@ -27,13 +27,13 @@ rm packages-microsoft-prod.deb
 
 インストールを続けます：
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### Basisを取得する
 
 希望するフォルダに移動して実行します：
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### Basisサーバーをビルドする
 
@@ -57,9 +57,9 @@ BasisServerConsoleディレクトリに移動して実行します：
 
 :::tip より特定的なLinuxリリースの場合
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
-`BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`から`./BasisNetworkConsole`を実行してください。
+`BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`から`./BasisNetworkConsole`を実行してください。
 
 :::
 
@@ -87,30 +87,136 @@ BasisServerConsoleディレクトリに移動して実行します：
 
 ## Config.xml
 
-| 変数                     | デフォルト            | 説明 |
-|--------------------------|------------------------|-------------|
-| `PeerLimit`              | 1024                   | サーバーで許可される最大プレイヤー数。 |
-| `SetPort`                | 4296                   | サーバーが待ち受けるネットワークポート。 |
-| `Password`               | default_password       | デフォルトサーバーアクセスパスワード。 |
-| `HealthCheckHost`        | localhost              | ヘルスチェック用ホスト名。`*`で全インターフェースにバインド。 |
-| `HealthCheckPort`        | 10666                  | ヘルスチェック用ポート。 |
-| `UseAuth`                | true                   | サーバー認証の有効/無効。 |
-| `UseAuthIdentity`        | true                   | 認証オン時にDID ID検証を使用。 |
+| 変数 | 既定値 | 説明 |
+|---|---|---|
+| `PeerLimit` | 65535 | 接続済み peer の最大数。 |
+| `SetPort` | 4296 | サーバーが待ち受ける UDP ポート。 |
+| `UseNativeSockets` | true | 管理パスではなく OS ネイティブの socket 呼び出しを使用します。 |
+| `NatPunchEnabled` | false | peer の紹介に NAT punch-through を有効にします。 |
+| `PingInterval` | 1500 | keep-alive ping の間隔（ミリ秒）。 |
+| `DisconnectTimeout` | 30000 | 応答がない peer を切断するまでの時間（ミリ秒）。 |
+| `SimulatePacketLoss` | false | テスト用に送信パケットを人工的に破棄します。 |
+| `SimulateLatency` | false | テスト用にパケットを人工的に遅延させます。 |
+| `SimulationPacketLossChance` | 10 | パケットロスシミュレーション有効時のロス率。 |
+| `SimulationMinLatency` | 50 | 追加される最小遅延（ミリ秒）。 |
+| `SimulationMaxLatency` | 150 | 追加される最大遅延（ミリ秒）。 |
+| `ReconnectDelay` | 500 | 再接続を試みるまでの時間。 |
+| `MaxConnectAttempts` | 10 | 最大接続試行回数。 |
+| `ReuseAddresss` | false | socket 再利用オプション。フィールド名の綴りに注意してください。 |
+| `DontRoute` | false | socket ルーティングオプション。 |
+| `EnableStatistics` | true | health/status レポート用の転送統計を収集します。 |
+| `IPv6Enabled` | true | IPv6 dual-stack socket サポートを有効にします。 |
+| `MtuOverride` | 0 | 固定 MTU を強制します。0 は上書きを無効にします。 |
+| `MtuDiscovery` | true | Path-MTU discovery を有効にします。 |
+| `DisconnectOnUnreachable` | false | ICMP unreachable で切断します。 |
+| `AllowPeerAddressChange` | true | セッション中に peer endpoint が変わることを許可します。 |
+| `HasFileSupport` | true | ログ、モデレーションリスト、auth ID データなどのディスク書き込みを有効にします。 |
+| `HealthCheckHost` | localhost | health check 用のホストまたはインターフェイス。* ですべてのインターフェイスにバインドします。 |
+| `HealthCheckPort` | 10666 | health check 用 TCP ポート。 |
+| `HealthPath` | /health | health check endpoint のパス。 |
+| `BSRSMillisecondDefaultInterval` | 50 | Server Reduction System の基本送信間隔（ミリ秒）。 |
+| `BSRBaseMultiplier` | 1 | 距離スケーリング前に適用される基本倍率。 |
+| `BSRSIncreaseRate` | 0.005 | 距離に応じて送信間隔が増加する速さ。 |
+| `BSRSlowestSendRate` | 2.55 | 遠距離 peer に対してクライアントへ渡す最も遅い送信レート。 |
+| `HighQualityDistance` | 3 | 高品質 avatar 同期の距離しきい値。 |
+| `MediumQualityDistance` | 10 | 中品質 avatar 同期の距離しきい値。 |
+| `LowQualityDistance` | 20 | 低品質 avatar 同期の距離しきい値。 |
+| `OverrideAutoDiscoveryOfIpv` | false | IP バージョンの自動検出ではなく、設定されたアドレスに正確にバインドします。 |
+| `IPv4Address` | 0.0.0.0 | IPv4 バインドアドレス。 |
+| `IPv6Address` | ::1 | IPv6 バインドアドレス。 |
+| `Password` | default_password | サーバーアクセスパスワード。 |
+| `UseAuth` | true | パスワード認証を有効または無効にします。 |
+| `UseAuthIdentity` | true | auth 有効時に DID ID 検証を要求します。 |
+| `BasisUserRestrictionMode` | Normal | 参加制限モード: Normal、BlackList、WhiteList。 |
+| `HowManyDuplicateAuthCanExist` | 2 | 同じ auth ID に許可される同時接続数。 |
+| `AuthValidationTimeOutMiliseconds` | 9000 | auth 検証タイムアウト（ミリ秒）。 |
+| `EnableConsole` | true | 対話式サーバーコンソールを有効にします。 |
+| `DisableWriteUnlessAdminPersistentFlag` | true | 呼び出し元が admin でない場合、永続 key/value 書き込みを拒否します。 |
+| `DisableReadUnlessAdminPersistentFlag` | false | 呼び出し元が admin でない場合、永続 key/value 読み取りを拒否します。 |
+| `UseNetworkFinalCompression` | false | 最終ネットワーク圧縮パスを有効にします。 |
+| `EnableBSRProfiling` | false | Server Reduction System の profiling 出力を有効にします。 |
+| `DisallowHeadless` | false | 接続時に headless クライアントを拒否します。 |
+| `AvatarsLocked` | false | bypass 権限のないユーザーの avatar 読み込みをブロックします。 |
+| `PropsLocked` | false | bypass 権限のないユーザーの prop 読み込みをブロックします。 |
+| `WorldsLocked` | true | bypass 権限のないユーザーの world 読み込みをブロックします。 |
 
-<small>低レベルネットワーキングは<strong>LiteNetLib</strong>というサードパーティライブラリで処理されます。このコードに関連する設定変数は<code>LNL</code>とマークされています。</small>
+<small>公開設定フィールドと同じ名前の環境変数は、起動時にそのフィールドを上書きします。</small>
+
+### 認証設定
+
+```xml
+<UseAuth>true</UseAuth>
+```
+
+```xml
+<UseAuthIdentity>true</UseAuthIdentity>
+```
+
+```xml
+<BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+```
+
+```xml
+<HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+```
 
 ### Config.xmlの例
+
+config.xml に含まれる既定設定:
 
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <Password>default_password</Password>
+  <UseNativeSockets>true</UseNativeSockets>
+  <NatPunchEnabled>false</NatPunchEnabled>
+  <PingInterval>1500</PingInterval>
+  <DisconnectTimeout>30000</DisconnectTimeout>
+  <SimulatePacketLoss>false</SimulatePacketLoss>
+  <SimulateLatency>false</SimulateLatency>
+  <SimulationPacketLossChance>10</SimulationPacketLossChance>
+  <SimulationMinLatency>50</SimulationMinLatency>
+  <SimulationMaxLatency>150</SimulationMaxLatency>
+  <ReconnectDelay>500</ReconnectDelay>
+  <MaxConnectAttempts>10</MaxConnectAttempts>
+  <ReuseAddresss>false</ReuseAddresss>
+  <DontRoute>false</DontRoute>
+  <EnableStatistics>true</EnableStatistics>
+  <IPv6Enabled>true</IPv6Enabled>
+  <MtuOverride>0</MtuOverride>
+  <MtuDiscovery>true</MtuDiscovery>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
+  <AllowPeerAddressChange>true</AllowPeerAddressChange>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
+  <HealthPath>/health</HealthPath>
+  <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
+  <BSRBaseMultiplier>1</BSRBaseMultiplier>
+  <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
+  <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
+  <IPv4Address>0.0.0.0</IPv4Address>
+  <IPv6Address>::1</IPv6Address>
+  <Password>default_password</Password>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
+  <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+  <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+  <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

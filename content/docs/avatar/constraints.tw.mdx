@@ -1,0 +1,87 @@
+---
+title: 約束
+description: Basis 提供的約束元件，以及手臂 Twist 骨骼的自動支援。
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+約束描述一個 Transform 如何影響另一個 Transform。它們可以移動物件、讓物件朝向目標、解算骨骼鏈，或維持多個參考物件之間的關係。
+
+Basis 提供自己的約束元件，並將它們作為 Avatar 執行階段的一部分進行評估。如果你正在轉換 Unity Avatar，下面列出的 Unity 和 Animation Rigging 名稱可以幫助你找到對應的 Basis 約束。
+
+Basis 目前在 `BasisConstraintType` 中定義了 **14 種具體約束類型**。
+
+## Transform 約束
+
+當主要結果是位置、旋轉、縮放或類似父物件的關係時，可以使用這些約束。
+
+- **Position** — `BasisPositionConstraint` 根據一個或多個帶權重的來源混合 Transform 的位置。軸遮罩可以限制受影響的位置軸，而偏移可以避免目標直接跳到來源上。對應 Unity 的 `PositionConstraint` 和 Animation Rigging 的 `MultiPositionConstraint`。
+
+- **Rotation** — `BasisRotationConstraint` 根據一個或多個來源混合旋轉。按軸遮罩和旋轉偏移可以保留原始姿勢的一部分。對應 Unity 的 `RotationConstraint` 和 Animation Rigging 的 `MultiRotationConstraint`。
+
+- **Scale** — `BasisScaleConstraint` 根據一個或多個來源混合 Transform 的縮放。對應 Unity 的 `ScaleConstraint`。
+
+- **Parent** — `BasisParentConstraint` 將位置和旋轉結合起來，使物件可以跟隨類似父物件的來源，而不需要改變階層。對應 Unity 的 `ParentConstraint` 和 Animation Rigging 的 `MultiParentConstraint`。
+
+### 範例：Parent 約束
+
+下面的 Inspector 範例展示了一個包含兩個來源 Transform 的 `Basis Parent Constraint`。兩個來源的權重都是 `1`，因此受約束物件會使用 `Point L` 和 `Point R` 的組合結果。
+
+**Parent** 區域保存目標在靜止狀態下的位置和旋轉，並且可以凍結個別的位置軸或旋轉軸。**Per-Source Offsets** 為每個來源分別保存位置和旋轉偏移，使目標可以跟隨來源而不必直接重合。
+
+![包含兩個帶權重來源的 Basis Parent Constraint](/img/avatars/basis-parent-constraint.png)
+
+## 方向和動作約束
+
+當 Transform 需要朝向目標、在多個姿勢之間混合，或以特定的動作方式跟隨來源時，可以使用這些約束。
+
+- **Aim** — `BasisAimConstraint` 旋轉物件，使設定的本地軸指向來源的帶權重位置。對應 Unity 的 `AimConstraint` 和 Animation Rigging 的 `MultiAimConstraint`。
+
+- **Look At** — `BasisLookAtConstraint` 使用類似 Look At 的解算，讓物件朝向來源的位置。對應 Unity 的 `LookAtConstraint`。
+
+- **Blend** — `BasisBlendConstraint` 在兩個來源之間混合位置和旋轉。當 Transform 需要在兩個參考物件之間平順移動時，可以使用它。對應 Animation Rigging 的 `BlendConstraint`。
+
+- **Override Transform** — `BasisOverrideTransform` 取代或偏移 Transform 的位置和旋轉。它可以相對於某個來源套用覆寫，用於對現有姿勢進行可控制的修正。對應 Animation Rigging 的 `OverrideTransform`。
+
+- **Damped Transform** — `BasisDampedTransform` 以帶阻尼的位置和旋轉動作跟隨來源。目標會逐漸追上來源，而不是立即跳到來源的位置。對應 Animation Rigging 的 `DampedTransform`。
+
+## IK 和 Twist 約束
+
+這些約束會解算多個骨骼之間的關係，而不是分別處理每一個 Transform。
+
+- **Twist Correction** — `BasisTwistCorrection` 提取來源的軸向扭轉，並將其中帶權重的一部分套用到 Twist 節點。對應 Animation Rigging 的 `TwistCorrection`。
+
+- **Two-Bone IK** — `BasisTwoBoneIK` 將三關節鏈解算到目標，例如上臂、前臂和手。選用的 Hint 可以幫助控制中間關節的彎曲方向。對應 Animation Rigging 的 `TwoBoneIKConstraint`。
+
+- **Chain IK** — `BasisChainIK` 將多個骨骼組成的鏈解算到目標。對應 Animation Rigging 的 `ChainIKConstraint`。
+
+- **Twist Chain** — `BasisTwistChain` 在骨骼鏈的根目標和末端目標之間分配 Twist。轉換時，Basis 會為鏈中的每根骨骼建立一個元件。對應 Animation Rigging 的 `TwistChainConstraint`。
+
+## 參考物件關係
+
+- **Multi-Referential** — `BasisMultiReferential` 維持多個參考 Transform 之間的關係。其中一個選定的參考物件作為驅動，其餘物件跟隨該關係。對應 Animation Rigging 的 `MultiReferentialConstraint`。
+
+## 共用的約束資料
+
+以下類型屬於約束框架，但不是需要單獨加入為行為的具體約束元件。
+
+- `BasisConstraintBase` 是所有約束共用的基礎元件。它儲存權重、啟用和鎖定狀態、來源資料，以及作者設定的評估順序等資訊。
+
+- `BasisConstraintSourceEntry` 表示一個來源。它包含來源 `Transform` 和該來源的相對權重。
+
+- `BasisConstraintAxes` 控制約束會影響哪些軸。可用值為 `None`、`X`、`Y`、`Z` 和 `All`。
+
+- `BasisConstraintWorldUp` 選擇約束所需的 Up 方向參考。可用值為 `SceneUp`、`ObjectUp`、`ObjectRotationUp`、`Vector` 和 `None`。
+
+## 手臂 Twist 骨骼的自動支援
+
+Basis 在全身 IK 流程中提供手臂 Twist 骨骼的自動產生和支援。這項功能不是 `BasisConstraintBase` 元件，因此不會在階層中顯示為獨立的約束。
+
+該行為直接實作於 `BasisFullIKConstraintJob` 中。手臂 IK 解算之後，Basis 會：
+
+1. 尋找上臂和前臂骨骼的直接子物件，其名稱包含 `twist` 或 `roll`。
+2. 將這些 Transform 綁定到全身 IK 工作中。
+3. 在手臂解算完成後執行 Twist 骨骼步驟。
+4. 直接寫入偵測到的 Twist 骨骼的世界旋轉。
+
+因此，即使 Twist 骨骼上沒有 `BasisRotationConstraint`，它也可能已經有旋轉驅動器。排查 Twist 衝突時，除了檢查約束元件，也要檢查手臂階層中的這些直接子物件。

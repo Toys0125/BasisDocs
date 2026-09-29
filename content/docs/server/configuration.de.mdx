@@ -9,7 +9,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 Der Fokus liegt hier auf der Basis-Server-spezifischen Konfiguration.
 
-Dieses Dokument gilt für einen unmodifizierten Basis Server: Version 6, LTS-Branch, Mai 2025.
+Dieses Dokument gilt für einen unmodifizierten Basis Server: Version 29, LTS-Branch, April 2026.
 */}
 
 ### Kompilieren und unter Linux ausführen
@@ -29,13 +29,13 @@ rm packages-microsoft-prod.deb
 
 Dann Installation fortsetzen:
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### Basis herunterladen
 
 Wechseln Sie in den gewünschten Ordner und führen Sie aus:
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### Basis Server kompilieren
 
@@ -59,9 +59,9 @@ Navigieren Sie zum BasisServerConsole-Verzeichnis und führen Sie aus:
 
 :::tip Für ein gezieltes Linux-Release
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
-Aus `BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole` führen Sie `./BasisNetworkConsole` aus.
+Aus `BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole` führen Sie `./BasisNetworkConsole` aus.
 
 :::
 
@@ -89,30 +89,136 @@ Beim ersten Ausführen des Servers werden verschiedene Konfigurationsdateien und
 
 ## Config.xml
 
-| Variable                 | Standard              | Beschreibung |
-|--------------------------|------------------------|-------------|
-| `PeerLimit`              | 1024                   | Maximale Anzahl der Spieler auf dem Server. |
-| `SetPort`                | 4296                   | Netzwerkport, auf dem der Server lauscht. |
-| `Password`               | default_password       | Standard-Zugangspasswort des Servers. |
-| `HealthCheckHost`        | localhost              | Hostname für Gesundheitschecks. `*` für alle Interfaces. |
-| `HealthCheckPort`        | 10666                  | Port für Gesundheitschecks. |
-| `UseAuth`                | true                   | Server-Authentifizierung aktivieren/deaktivieren. |
-| `UseAuthIdentity`        | true                   | DID-Identitätsverifizierung verwenden. |
+| Variable | Standard | Beschreibung |
+|---|---|---|
+| `PeerLimit` | 65535 | Maximale Anzahl verbundener Peers. |
+| `SetPort` | 4296 | UDP-Port, auf dem der Server lauscht. |
+| `UseNativeSockets` | true | Verwendet native Socket-Aufrufe des Betriebssystems statt des verwalteten Pfads. |
+| `NatPunchEnabled` | false | Aktiviert NAT-Punch-through für Peer-Einführungen. |
+| `PingInterval` | 1500 | Intervall zwischen Keep-alive-Pings in Millisekunden. |
+| `DisconnectTimeout` | 30000 | Zeit ohne Antwort, bevor ein Peer getrennt wird, in Millisekunden. |
+| `SimulatePacketLoss` | false | Lässt ausgehende Pakete künstlich fallen, nur für Tests. |
+| `SimulateLatency` | false | Verzögert Pakete künstlich, nur für Tests. |
+| `SimulationPacketLossChance` | 10 | Paketverlust-Prozentsatz, wenn Paketverlustsimulation aktiviert ist. |
+| `SimulationMinLatency` | 50 | Minimale zusätzliche Latenz in Millisekunden. |
+| `SimulationMaxLatency` | 150 | Maximale zusätzliche Latenz in Millisekunden. |
+| `ReconnectDelay` | 500 | Zeit vor einem Wiederverbindungsversuch. |
+| `MaxConnectAttempts` | 10 | Maximale Anzahl von Verbindungsversuchen. |
+| `ReuseAddresss` | false | Socket-Reuse-Option; beachten Sie die Schreibweise des Feldnamens. |
+| `DontRoute` | false | Socket-Routing-Option. |
+| `EnableStatistics` | true | Sammelt Transportstatistiken für Health- und Statusberichte. |
+| `IPv6Enabled` | true | Aktiviert IPv6-Dual-Stack-Socket-Unterstützung. |
+| `MtuOverride` | 0 | Erzwingt eine feste MTU; 0 deaktiviert die Überschreibung. |
+| `MtuDiscovery` | true | Aktiviert Path-MTU-Erkennung. |
+| `DisconnectOnUnreachable` | false | Trennt bei ICMP-Unreachable. |
+| `AllowPeerAddressChange` | true | Erlaubt, dass sich der Endpunkt eines Peers während der Sitzung ändert. |
+| `HasFileSupport` | true | Aktiviert das Schreiben von Logs, Moderationslisten, Auth-Identitätsdaten und anderen dateibasierten Daten. |
+| `HealthCheckHost` | localhost | Host oder Interface für Health Checks. Mit * an alle Interfaces binden. |
+| `HealthCheckPort` | 10666 | TCP-Port für Health Checks. |
+| `HealthPath` | /health | Pfad zum Health-Check-Endpunkt. |
+| `BSRSMillisecondDefaultInterval` | 50 | Basis-Sendeintervall des Server Reduction Systems in Millisekunden. |
+| `BSRBaseMultiplier` | 1 | Basismultiplikator vor der Distanzskalierung. |
+| `BSRSIncreaseRate` | 0.005 | Wie schnell Sendeintervalle mit der Entfernung wachsen. |
+| `BSRSlowestSendRate` | 2.55 | Langsamste Senderate, die Clients für entfernte Peers erhalten. |
+| `HighQualityDistance` | 3 | Distanzschwelle für Avatar-Sync in hoher Qualität. |
+| `MediumQualityDistance` | 10 | Distanzschwelle für Avatar-Sync in mittlerer Qualität. |
+| `LowQualityDistance` | 20 | Distanzschwelle für Avatar-Sync in niedriger Qualität. |
+| `OverrideAutoDiscoveryOfIpv` | false | Bindet exakt die konfigurierten Adressen statt die IP-Version automatisch zu erkennen. |
+| `IPv4Address` | 0.0.0.0 | IPv4-Bind-Adresse. |
+| `IPv6Address` | ::1 | IPv6-Bind-Adresse. |
+| `Password` | default_password | Server-Zugangspasswort. |
+| `UseAuth` | true | Aktiviert oder deaktiviert Passwortauthentifizierung. |
+| `UseAuthIdentity` | true | Erfordert DID-Identitätsprüfung, wenn Authentifizierung aktiviert ist. |
+| `BasisUserRestrictionMode` | Normal | Beitrittsbeschränkung: Normal, BlackList oder WhiteList. |
+| `HowManyDuplicateAuthCanExist` | 2 | Anzahl gleichzeitiger Verbindungen mit derselben Auth-Identität. |
+| `AuthValidationTimeOutMiliseconds` | 9000 | Timeout für Auth-Validierung in Millisekunden. |
+| `EnableConsole` | true | Aktiviert die interaktive Serverkonsole. |
+| `DisableWriteUnlessAdminPersistentFlag` | true | Lehnt persistente Key/Value-Schreibzugriffe ab, wenn der Aufrufer kein Admin ist. |
+| `DisableReadUnlessAdminPersistentFlag` | false | Lehnt persistente Key/Value-Lesezugriffe ab, wenn der Aufrufer kein Admin ist. |
+| `UseNetworkFinalCompression` | false | Aktiviert den finalen Netzwerk-Kompressionsschritt. |
+| `EnableBSRProfiling` | false | Gibt Profiling-Ausgaben des Server Reduction Systems aus. |
+| `DisallowHeadless` | false | Weist Headless-Clients beim Verbinden ab. |
+| `AvatarsLocked` | false | Blockiert Avatar-Laden für Benutzer ohne Bypass-Berechtigung. |
+| `PropsLocked` | false | Blockiert Prop-Laden für Benutzer ohne Bypass-Berechtigung. |
+| `WorldsLocked` | true | Blockiert Welt-Laden für Benutzer ohne Bypass-Berechtigung. |
 
-<small>Das Low-Level-Networking wird von einer Drittanbieter-Bibliothek namens <strong>LiteNetLib</strong> verwaltet. Konfigurationsvariablen für diesen Code sind mit <code>LNL</code> markiert.</small>
+<small>Jede Umgebungsvariable, deren Name einem öffentlichen Konfigurationsfeld entspricht, überschreibt dieses Feld beim Start.</small>
+
+### Authentifizierungseinstellungen
+
+```xml
+<UseAuth>true</UseAuth>
+```
+
+```xml
+<UseAuthIdentity>true</UseAuthIdentity>
+```
+
+```xml
+<BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+```
+
+```xml
+<HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+```
 
 ### Beispiel Config.xml
+
+Die Standardeinstellungen in config.xml:
 
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <Password>default_password</Password>
+  <UseNativeSockets>true</UseNativeSockets>
+  <NatPunchEnabled>false</NatPunchEnabled>
+  <PingInterval>1500</PingInterval>
+  <DisconnectTimeout>30000</DisconnectTimeout>
+  <SimulatePacketLoss>false</SimulatePacketLoss>
+  <SimulateLatency>false</SimulateLatency>
+  <SimulationPacketLossChance>10</SimulationPacketLossChance>
+  <SimulationMinLatency>50</SimulationMinLatency>
+  <SimulationMaxLatency>150</SimulationMaxLatency>
+  <ReconnectDelay>500</ReconnectDelay>
+  <MaxConnectAttempts>10</MaxConnectAttempts>
+  <ReuseAddresss>false</ReuseAddresss>
+  <DontRoute>false</DontRoute>
+  <EnableStatistics>true</EnableStatistics>
+  <IPv6Enabled>true</IPv6Enabled>
+  <MtuOverride>0</MtuOverride>
+  <MtuDiscovery>true</MtuDiscovery>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
+  <AllowPeerAddressChange>true</AllowPeerAddressChange>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
+  <HealthPath>/health</HealthPath>
+  <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
+  <BSRBaseMultiplier>1</BSRBaseMultiplier>
+  <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
+  <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
+  <IPv4Address>0.0.0.0</IPv4Address>
+  <IPv6Address>::1</IPv6Address>
+  <Password>default_password</Password>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
+  <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
+  <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
+  <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

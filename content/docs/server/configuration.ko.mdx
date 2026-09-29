@@ -29,13 +29,13 @@ rm packages-microsoft-prod.deb
 
 그런 다음 설치를 계속합니다:
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### Basis 가져오기
 
 Basis를 다운로드할 디렉토리로 이동하여 다음 명령을 실행합니다:
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### Basis 서버 빌드
 
@@ -53,7 +53,7 @@ Basis를 다운로드할 디렉토리로 이동하여 다음 명령을 실행합
 
 #### 실행
 
-BasisServerConsole 폴더로 이동합니다(예: `/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`)
+BasisServerConsole 폴더로 이동합니다(예: `/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`)
 그리고 실행합니다:
 
 `dotnet .\BasisNetworkConsole.dll`
@@ -79,130 +79,136 @@ BasisServerConsole 폴더로 이동합니다(예: `/BasisServerConsole/bin/Debug
 
 ## Config.xml
 
-| 변수                                | 기본값                | 설명 |
-|-------------------------------------|------------------------|-------------|
-| `PeerLimit`                         | 1024                   | 서버에서 허용되는 최대 플레이어 수. |
-| `SetPort`                           | 4296                   | 서버가 수신 대기하는 네트워크 포트. |
-| `QueueEvents`                       | 10                     |   |
-| `UseNativeSockets`                  | true                   | LNL: 시스템 네이티브 소켓 구현 사용 |
-| `NatPunchEnabled`                   | true                   | LNL: NAT punch-through 활성화 |
-| `PingInterval`                      | 1500                   | LNL:  |
-| `DisconnectTimeout`                | 5000                   | LNL: 플레이어 연결 해제 전 대기 시간 |
-| `SimulatePacketLoss`               | false                  | 테스트를 위한 패킷 손실 시뮬레이션. |
-| `SimulateLatency`                  | false                  | 네트워크 지연 시뮬레이션. |
-| `SimulationPacketLossChance`      | 10                     |  |
-| `SimulationMinLatency`            | 50                     | 최소 시뮬레이션 지연. |
-| `SimulationMaxLatency`            | 150                    | 최대 시뮬레이션 지연. |
-| `UnsyncedEvents`                   | false                  |  |
-| `UnsyncedReceiveEvent`            | false                  |  |
-| `UnsyncedDeliveryEvent`           | false                  |  |
-| `ReconnectDelay`                   | 500                    | 재연결 시도 시간. |
-| `MaxConnectAttempts`              | 10                     | 최대 재연결 시도 횟수. |
-| `ReuseAddress`                     | true                   |  |
-| `DontRoute`                        | false                  |  |
-| `EnableStatistics`                 | true                   | LNL:  |
-| `IPv6Enabled`                      | true                   | LNL: IPv6 지원 활성화. |
-| `MtuOverride`                      | 1500                   | MTU(Maximum Transmission Unit) 재정의. |
-| `MtuDiscovery`                     | true                   | 자동 MTU 감지 활성화. |
-| `DisconnectOnUnreachable`         | true                   | 연결 불가능한 플레이어 연결 해제. |
-| `AllowPeerAddressChange`          | true                   | LNL: 플레이어 클라이언트가 IP 주소를 변경하도록 허용. |
-| `UsingLoggingFile`                | true                   | 파일 로깅 활성화. |
-| `HealthCheckHost`                 | localhost              | 상태 확인용 호스트 이름. 모든 인터페이스에 바인딩하려면 `*` 사용. |
-| `HealthCheckPort`                 | 10666                  | 상태 확인용 포트. |
-| `HealthPath`                       | /health                | 상태 확인 엔드포인트 경로. |
-| `BSRSMillisecondDefaultInterval`  | 50                     |  |
-| `BSRBaseMultiplier`               | 1                      |  |
-| `BSRSIncreaseRate`                | 0.005                  |  |
-| `OverrideAutoDiscoveryOfIpv`      | false                  |  |
-| `IPv4Address`                      | 0.0.0.0                | IPv4 바인딩 주소. |
-| `IPv6Address`                      | ::1                    | IPv6 바인딩 주소. |
-| `PromethusPort`                   | 1234                   | Prometheus 통계용 포트. |
-| `PromethusUrl`                    | /metrics               | Prometheus 통계용 URL 경로. |
-| `Password`                         | default_password       | 기본 서버 접속 비밀번호. |
-| `MinThreadPoolThreads`            | 100                    | 최소 스레드 풀 스레드 수. |
-| `MaxThreadPoolThreads`            | 500                    | 최대 스레드 풀 스레드 수. |
-| `UseAuth`                          | true                   | 서버 인증 활성화/비활성화. |
-| `UseAuthIdentity`                 | true                   | 인증 활성화 시 DID 신원 확인 사용. |
-| `BasisUserRestrictionMode`        | Normal                 | 사용자 모드 도구 관련. 현재 아직 완료되지 않음. |
-| `HowManyDuplicateAuthCanExist`   | 2                      | 동일한 플레이어가 동시에 인증될 수 있는 횟수. |
-| `AuthValidationTimeOutMiliseconds` | 9000                 | 인증 유효성 검사 타임아웃(ms). |
+| 변수 | 기본값 | 설명 |
+|---|---|---|
+| `PeerLimit` | 65535 | 연결된 peer의 최대 수입니다. |
+| `SetPort` | 4296 | 서버가 수신 대기하는 UDP 포트입니다. |
+| `UseNativeSockets` | true | 관리 경로 대신 운영체제 네이티브 socket 호출을 사용합니다. |
+| `NatPunchEnabled` | false | peer 소개를 위한 NAT punch-through를 활성화합니다. |
+| `PingInterval` | 1500 | keep-alive ping 간격(밀리초)입니다. |
+| `DisconnectTimeout` | 30000 | 응답이 없는 peer를 연결 해제하기까지의 시간(밀리초)입니다. |
+| `SimulatePacketLoss` | false | 테스트를 위해 송신 패킷을 인위적으로 폐기합니다. |
+| `SimulateLatency` | false | 테스트를 위해 패킷을 인위적으로 지연시킵니다. |
+| `SimulationPacketLossChance` | 10 | 패킷 손실 시뮬레이션이 활성화되었을 때의 손실 비율입니다. |
+| `SimulationMinLatency` | 50 | 추가되는 최소 지연 시간(밀리초)입니다. |
+| `SimulationMaxLatency` | 150 | 추가되는 최대 지연 시간(밀리초)입니다. |
+| `ReconnectDelay` | 500 | 재연결을 시도하기 전 대기 시간입니다. |
+| `MaxConnectAttempts` | 10 | 최대 연결 시도 횟수입니다. |
+| `ReuseAddresss` | false | socket 재사용 옵션입니다. 필드 철자에 주의하세요. |
+| `DontRoute` | false | socket 라우팅 옵션입니다. |
+| `EnableStatistics` | true | health/status 보고를 위한 전송 통계를 수집합니다. |
+| `IPv6Enabled` | true | IPv6 dual-stack socket 지원을 활성화합니다. |
+| `MtuOverride` | 0 | 고정 MTU를 강제합니다. 0은 덮어쓰기를 비활성화합니다. |
+| `MtuDiscovery` | true | Path-MTU discovery를 활성화합니다. |
+| `DisconnectOnUnreachable` | false | ICMP unreachable 수신 시 연결을 끊습니다. |
+| `AllowPeerAddressChange` | true | 세션 중 peer endpoint 변경을 허용합니다. |
+| `HasFileSupport` | true | 로그, moderation 목록, auth ID 데이터 및 기타 디스크 기반 데이터 쓰기를 활성화합니다. |
+| `HealthCheckHost` | localhost | health check용 호스트 또는 인터페이스입니다. *는 모든 인터페이스에 바인딩합니다. |
+| `HealthCheckPort` | 10666 | health check용 TCP 포트입니다. |
+| `HealthPath` | /health | health check endpoint 경로입니다. |
+| `BSRSMillisecondDefaultInterval` | 50 | Server Reduction System의 기본 전송 간격(밀리초)입니다. |
+| `BSRBaseMultiplier` | 1 | 거리 스케일링 전에 적용되는 기본 배율입니다. |
+| `BSRSIncreaseRate` | 0.005 | 거리에 따라 전송 간격이 증가하는 속도입니다. |
+| `BSRSlowestSendRate` | 2.55 | 멀리 있는 peer에 대해 클라이언트에 전달되는 가장 느린 전송 속도입니다. |
+| `HighQualityDistance` | 3 | 고품질 avatar 동기화 거리 임계값입니다. |
+| `MediumQualityDistance` | 10 | 중간 품질 avatar 동기화 거리 임계값입니다. |
+| `LowQualityDistance` | 20 | 저품질 avatar 동기화 거리 임계값입니다. |
+| `OverrideAutoDiscoveryOfIpv` | false | IP 버전 자동 감지 대신 설정된 주소에 정확히 바인딩합니다. |
+| `IPv4Address` | 0.0.0.0 | IPv4 바인딩 주소입니다. |
+| `IPv6Address` | :: | IPv6 바인딩 주소입니다. |
+| `Password` | default_password | 서버 접근 비밀번호입니다. |
+| `UseAuth` | true | 비밀번호 인증을 활성화하거나 비활성화합니다. |
+| `UseAuthIdentity` | true | auth가 활성화되면 DID ID 검증을 요구합니다. |
+| `BasisUserRestrictionMode` | Normal | 입장 제한 모드: Normal, BlackList 또는 WhiteList. |
+| `HowManyDuplicateAuthCanExist` | 2 | 동일한 auth ID에 허용되는 동시 연결 수입니다. |
+| `AuthValidationTimeOutMiliseconds` | 9000 | auth 검증 제한 시간(밀리초)입니다. |
+| `EnableConsole` | true | 대화형 서버 콘솔을 활성화합니다. |
+| `DisableWriteUnlessAdminPersistentFlag` | true | 호출자가 admin이 아니면 persistent key/value 쓰기를 거부합니다. |
+| `DisableReadUnlessAdminPersistentFlag` | false | 호출자가 admin이 아니면 persistent key/value 읽기를 거부합니다. |
+| `UseNetworkFinalCompression` | false | 최종 네트워크 압축 단계를 활성화합니다. |
+| `EnableBSRProfiling` | false | Server Reduction System profiling 출력을 냅니다. |
+| `DisallowHeadless` | false | 연결 시 headless 클라이언트를 거부합니다. |
+| `AvatarsLocked` | false | bypass 권한이 없는 사용자의 avatar 로드를 차단합니다. |
+| `PropsLocked` | false | bypass 권한이 없는 사용자의 prop 로드를 차단합니다. |
+| `WorldsLocked` | true | bypass 권한이 없는 사용자의 world 로드를 차단합니다. |
 
-<small>저수준 네트워킹은 <strong>LiteNetLib</strong>라는 서드파티 라이브러리에 의해 처리됩니다. 이 코드와 관련된 구성 변수는 <code>LNL</code>로 표시됩니다.</small>
+<small>공개 구성 필드와 이름이 일치하는 환경 변수는 시작 시 해당 필드를 덮어씁니다.</small>
 
 ### 인증 설정
 
 ```xml
-<UseAuth>true</UseAuth> 
+<UseAuth>true</UseAuth>
 ```
-인증을 완전히 비활성화하기 위한 것입니다.
 
 ```xml
 <UseAuthIdentity>true</UseAuthIdentity>
 ```
-DID 인증 공급자 활성화/비활성화.
 
 ```xml
 <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
 ```
-아직 완료되지 않았습니다. 관리자 모더레이션.
 
 ```xml
 <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
 ```
-동일한 인증 자격 증명으로 연결할 수 있는 사람 수.
 
 ### Config.xml 예시
 
-config.xml에서 찾을 수 있는 기본 설정:
+config.xml에서 볼 수 있는 기본 설정:
 
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <QueueEvents>10</QueueEvents>
   <UseNativeSockets>true</UseNativeSockets>
-  <NatPunchEnabled>true</NatPunchEnabled>
+  <NatPunchEnabled>false</NatPunchEnabled>
   <PingInterval>1500</PingInterval>
-  <DisconnectTimeout>5000</DisconnectTimeout>
+  <DisconnectTimeout>30000</DisconnectTimeout>
   <SimulatePacketLoss>false</SimulatePacketLoss>
   <SimulateLatency>false</SimulateLatency>
   <SimulationPacketLossChance>10</SimulationPacketLossChance>
   <SimulationMinLatency>50</SimulationMinLatency>
   <SimulationMaxLatency>150</SimulationMaxLatency>
-  <UnsyncedEvents>false</UnsyncedEvents>
-  <UnsyncedReceiveEvent>false</UnsyncedReceiveEvent>
-  <UnsyncedDeliveryEvent>false</UnsyncedDeliveryEvent>
   <ReconnectDelay>500</ReconnectDelay>
   <MaxConnectAttempts>10</MaxConnectAttempts>
-  <ReuseAddress>true</ReuseAddress>
+  <ReuseAddresss>false</ReuseAddresss>
   <DontRoute>false</DontRoute>
   <EnableStatistics>true</EnableStatistics>
   <IPv6Enabled>true</IPv6Enabled>
-  <MtuOverride>1500</MtuOverride>
+  <MtuOverride>0</MtuOverride>
   <MtuDiscovery>true</MtuDiscovery>
-  <DisconnectOnUnreachable>true</DisconnectOnUnreachable>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
   <AllowPeerAddressChange>true</AllowPeerAddressChange>
-  <UsingLoggingFile>true</UsingLoggingFile>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
   <HealthPath>/health</HealthPath>
   <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
   <BSRBaseMultiplier>1</BSRBaseMultiplier>
   <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
   <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
   <IPv4Address>0.0.0.0</IPv4Address>
-  <IPv6Address>::1</IPv6Address>
-  <PromethusPort>1234</PromethusPort>
-  <PromethusUrl>/metrics</PromethusUrl>
+  <IPv6Address>::</IPv6Address>
   <Password>default_password</Password>
-  <MinThreadPoolThreads>100</MinThreadPoolThreads>
-  <MaxThreadPoolThreads>500</MaxThreadPoolThreads>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
   <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
   <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
   <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

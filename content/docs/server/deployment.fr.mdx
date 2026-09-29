@@ -10,7 +10,7 @@ L'objectif ici est la configuration spécifique au serveur Basis, et non les nom
 
 Le multithreading du serveur fonctionne mieux avec plus de cœurs disponibles, mais il a été démontré qu'il fonctionne bien avec aussi peu que deux cœurs. La VR sociale demande beaucoup de bande passante, donc gardez cela à l'esprit lors du choix de votre fournisseur de services.
 
-Ce document s'applique à un serveur Basis non modifié : Version 6 de la branche LTS en date de mai 2025 {/* `commit 672035f0afe87b2fbe4e36bbd7f6cd340059d976` de la branche lts */}
+Ce document s'applique à un serveur Basis non modifié : Version 29 de la branche LTS en date de avril 2026 {/* `commit 672035f0afe87b2fbe4e36bbd7f6cd340059d976` de la branche lts */}
 
 <Callout type="info" title="Conseil utile sur la version du serveur">
 Vous pouvez trouver le **ServerVersion** dans le code que vous avez cloné depuis le dépôt.  
@@ -18,13 +18,13 @@ Le code client et serveur **doivent concorder** sur la version.
 
 ```csharp
 BasisNetworkCore\BasisNetworkVersion.cs
-5:        public static ushort ServerVersion = 6;
+5:        public static ushort ServerVersion = 29;
 ```
 </Callout>
 
 ## Exécuter avec [Docker](https://docs.docker.com/get-started/docker-overview/)
 
-Utiliser [docker-compose](https://docs.docker.com/compose/) est le moyen le plus simple et le plus rapide de démarrer un serveur Basis. Les images Docker du serveur sont publiées sur GitHub sur les branches `long-term-support` et `developer`, sous `latest` et `nightly` respectivement.
+Utiliser [docker-compose](https://docs.docker.com/compose/) est le moyen le plus simple et le plus rapide de démarrer un serveur Basis. Les images Docker du serveur sont publiées sur GitHub sur les branches `long-term-support-20260425` et `developer`, sous `latest` et `nightly` respectivement.
 
 ```yml
 services:
@@ -60,29 +60,36 @@ services:
 ``` 
 Exécutez une fois pour créer `config.xml` (sous `./config` dans l'exemple). Les paramètres XML seront remplacés par les variables d'environnement.
 
+## Binaires précompilés
+
+Les binaires serveur précompilés sont disponibles dans les artefacts GitHub Actions :
+
+- [Builds nightly developer](https://nightly.link/BasisVR/Basis/workflows/compilation/developer?preview)
+- [Builds long-term support](https://nightly.link/BasisVR/Basis/workflows/compilation/long-term-support-20260425?preview)
+
 ## Compiler et exécuter sur Windows
 
 En supposant que vous avez cloné la branche LTS du dépôt.
-`git clone -b long-term-support https://github.com/BasisVR/Basis.git`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis.git`
 
-Vous trouverez le fichier solution Visual Studio (sln) dans le répertoire `Basis Server`.
-Ces étapes supposent Windows 11 avec Microsoft Visual Studio Community 2022 (64 bits) - Version 17.12.3
+You will find the Visual Studio Solution file (sln) in the `Basis Server` directory.
+These steps assume Windows 11 using Microsoft Visual Studio Community 2026 (64-bit).
 
-Le BasisNetworkConsole est le csproj que vous devrez cibler pour la compilation.
-Vous devriez pouvoir sélectionner ce projet dans le menu d'élément de démarrage en haut.
-Une fois sélectionné, cliquez sur la flèche verte pour compiler.
+The BasisNetworkConsole is the csproj you will need to target for compiling.
+You should be able to select that project from the start up item menu at the top.
+Once selected click the green arrow to build.
 
-Une fois compilé, accédez à `\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\`
+Une fois compilé, accédez à `\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\`
 pour trouver l'exe du serveur et les dépendances compilées.
 
 Pour exécuter le serveur localement sur Windows, ouvrez un shell de commande dans ce répertoire et exécutez `.\BasisNetworkConsole.exe`
 
-`\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0> .\BasisNetworkConsole.exe`
+`\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0> .\BasisNetworkConsole.exe`
 
 Cela devrait ouvrir une console et afficher quelque chose comme suit :
 
 ```txt title="Exemple de sortie de console du serveur"
-[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\Logs\2025-05-10.log
+[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\Logs\2025-05-10.log
 [20:07] [INFO] Server Booting
 [20:07] [INFO] HTTP health check started at 'http://localhost:10666/health'
 [20:07] [INFO] Loaded Admins 0
@@ -113,13 +120,13 @@ rm packages-microsoft-prod.deb
 
 Puis poursuivez l'installation :
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 ### Obtenir Basis
 
 Accédez au dossier où vous souhaitez télécharger Basis et exécutez la commande suivante :
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 ### Compiler le serveur Basis
 
@@ -137,7 +144,7 @@ ou
 
 ### Exécuter
 
-Accédez au répertoire BasisServerConsole (quelque chose comme `/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`)
+Accédez au répertoire BasisServerConsole (quelque chose comme `/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`)
 et exécutez :
 
 `dotnet .\.BasisNetworkConsole.dll`
@@ -146,7 +153,7 @@ et exécutez :
 
 Vous pouvez compiler avec la commande suivante :
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
 Le paramètre `--self-contained` est ajouté pour permettre l'exécution sur un OS sans dotnet installé.
 
@@ -154,7 +161,7 @@ Si vous compilez de cette façon (ou si votre build cible le système), vous dev
 
 `./BasisNetworkConsole`
 
-depuis `BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`.
+depuis `BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`.
 
 </Callout>
 

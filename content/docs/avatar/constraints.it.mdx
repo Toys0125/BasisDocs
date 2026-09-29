@@ -1,0 +1,87 @@
+---
+title: Vincoli
+description: Componenti di vincolo disponibili in Basis e supporto automatico per le ossa twist del braccio.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+I vincoli descrivono come un Transform può influenzarne un altro. Possono spostare un oggetto, orientarlo verso un obiettivo, risolvere una catena di ossa o mantenere la relazione tra più riferimenti.
+
+Basis fornisce i propri componenti di vincolo e li valuta come parte del runtime dell'avatar. Quando converti un avatar Unity, i nomi Unity e Animation Rigging indicano quali componenti conosciuti corrispondono a ciascun vincolo Basis.
+
+Basis definisce attualmente **14 tipi di vincolo concreti** in `BasisConstraintType`.
+
+## Vincoli di trasformazione
+
+Questi vincoli sono utili quando il risultato principale deve essere una posizione, una rotazione, una scala o una relazione simile a quella di un genitore.
+
+- **Posizione** — `BasisPositionConstraint` combina la posizione di un Transform a partire da una o più sorgenti pesate. Le maschere degli assi limitano l'effetto a determinati assi e gli offset impediscono che l'oggetto vincolato salti direttamente sulla sorgente. Corrisponde a `PositionConstraint` di Unity e `MultiPositionConstraint` di Animation Rigging.
+
+- **Rotazione** — `BasisRotationConstraint` combina la rotazione da una o più sorgenti. Le maschere per asse e gli offset di rotazione permettono di conservare parte della posa originale. Corrisponde a `RotationConstraint` di Unity e `MultiRotationConstraint` di Animation Rigging.
+
+- **Scala** — `BasisScaleConstraint` combina la scala di un Transform da una o più sorgenti. Corrisponde a `ScaleConstraint` di Unity.
+
+- **Parent** — `BasisParentConstraint` combina posizione e rotazione, così un oggetto può seguire sorgenti simili a genitori senza cambiare gerarchia. Corrisponde a `ParentConstraint` di Unity e `MultiParentConstraint` di Animation Rigging.
+
+### Esempio: un vincolo Parent
+
+L'esempio nell'Inspector mostra un `Basis Parent Constraint` con due Transform sorgente. Ogni sorgente ha peso `1`, quindi l'oggetto vincolato riceve il risultato combinato di `Point L` e `Point R`.
+
+La sezione **Parent** conserva la posizione e la rotazione del bersaglio a riposo e permette di bloccare singoli assi di posizione o rotazione. **Per-Source Offsets** conserva un offset di posizione e rotazione separato per ogni sorgente, così il bersaglio può seguirla senza sovrapporsi direttamente.
+
+![Basis Parent Constraint con due sorgenti pesate](/img/avatars/basis-parent-constraint.png)
+
+## Vincoli di direzione e movimento
+
+Usali quando un Transform deve puntare verso un obiettivo, passare gradualmente tra pose o seguire un'altra sorgente con un movimento specifico.
+
+- **Aim** — `BasisAimConstraint` ruota un oggetto affinché un asse locale configurato punti verso le posizioni pesate delle sorgenti. Corrisponde a `AimConstraint` di Unity e `MultiAimConstraint` di Animation Rigging.
+
+- **Look At** — `BasisLookAtConstraint` orienta un oggetto verso le posizioni delle sorgenti usando una soluzione di tipo look-at. Corrisponde a `LookAtConstraint` di Unity.
+
+- **Blend** — `BasisBlendConstraint` combina posizione e rotazione tra due sorgenti. È utile quando un Transform deve muoversi continuamente tra due riferimenti. Corrisponde a `BlendConstraint` di Animation Rigging.
+
+- **Override Transform** — `BasisOverrideTransform` sostituisce o sposta la posizione e la rotazione di un Transform. Può applicare l'override rispetto a una sorgente per correggere una posa in modo controllato. Corrisponde a `OverrideTransform` di Animation Rigging.
+
+- **Damped Transform** — `BasisDampedTransform` segue una sorgente con movimento posizionale e rotazionale smorzato. Il bersaglio raggiunge gradualmente la sorgente invece di saltare subito. Corrisponde a `DampedTransform` di Animation Rigging.
+
+## Vincoli IK e twist
+
+Questi vincoli risolvono relazioni tra più ossa invece di trattare ogni Transform separatamente.
+
+- **Twist Correction** — `BasisTwistCorrection` estrae la torsione assiale da una sorgente e ne applica una parte pesata a un nodo twist. Corrisponde a `TwistCorrection` di Animation Rigging.
+
+- **Two-Bone IK** — `BasisTwoBoneIK` risolve una catena di tre articolazioni, per esempio braccio, avambraccio e mano, verso un obiettivo. Un hint opzionale aiuta a controllare la direzione in cui si piega l'articolazione centrale. Corrisponde a `TwoBoneIKConstraint` di Animation Rigging.
+
+- **Chain IK** — `BasisChainIK` risolve una catena di più ossa verso un obiettivo. Corrisponde a `ChainIKConstraint` di Animation Rigging.
+
+- **Twist Chain** — `BasisTwistChain` distribuisce la torsione tra gli obiettivi root e tip di una catena. Durante la conversione, Basis crea un componente per ogni osso della catena. Corrisponde a `TwistChainConstraint` di Animation Rigging.
+
+## Relazioni tra riferimenti
+
+- **Multi-Referential** — `BasisMultiReferential` mantiene la relazione tra più Transform di riferimento. Un riferimento selezionato agisce da driver e gli altri seguono la sua relazione. Corrisponde a `MultiReferentialConstraint` di Animation Rigging.
+
+## Dati condivisi dei vincoli
+
+Questi tipi fanno parte del framework dei vincoli, ma non sono componenti concreti da aggiungere come comportamenti indipendenti.
+
+- `BasisConstraintBase` è il componente base comune. Contiene peso, stato attivo e bloccato, dati delle sorgenti e ordine di valutazione definito dall'autore.
+
+- `BasisConstraintSourceEntry` rappresenta una sorgente. Contiene il `Transform` sorgente e il suo peso relativo.
+
+- `BasisConstraintAxes` controlla gli assi interessati da un vincolo. I valori sono `None`, `X`, `Y`, `Z` e `All`.
+
+- `BasisConstraintWorldUp` seleziona il riferimento up quando un vincolo necessita di una direzione up. I valori sono `SceneUp`, `ObjectUp`, `ObjectRotationUp`, `Vector` e `None`.
+
+## Supporto automatico per le ossa twist del braccio
+
+Basis include la generazione e il supporto automatici per le ossa twist del braccio nel flusso IK completo. Questa funzione non è rappresentata da un componente `BasisConstraintBase`, quindi non appare come vincolo separato nella gerarchia.
+
+Il comportamento è implementato in `BasisFullIKConstraintJob`. Dopo la risoluzione dell'IK del braccio, Basis:
+
+1. Cerca i figli diretti delle ossa del braccio superiore e inferiore il cui nome contiene `twist` o `roll`.
+2. Collega questi Transform al job IK completo.
+3. Esegue il passaggio delle ossa twist dopo aver risolto il braccio.
+4. Scrive direttamente la rotazione mondiale dell'osso twist rilevato.
+
+Per questo un osso twist può avere un driver di rotazione anche senza un `BasisRotationConstraint`. Se stai indagando su un conflitto, controlla anche i figli diretti della gerarchia del braccio oltre ai componenti di vincolo.

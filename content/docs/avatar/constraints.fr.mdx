@@ -1,0 +1,87 @@
+---
+title: Contraintes
+description: Composants de contraintes disponibles dans Basis et prise en charge automatique des os twist du bras.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Les contraintes décrivent la manière dont un Transform peut influencer un autre. Elles peuvent déplacer un objet, l'orienter vers une cible, résoudre une chaîne d'os ou préserver la relation entre plusieurs références.
+
+Basis fournit ses propres composants de contraintes et les évalue dans le runtime de l'avatar. Lors de la conversion d'un avatar Unity, les noms Unity et Animation Rigging ci-dessous indiquent les composants connus qui correspondent à chaque contrainte Basis.
+
+Basis définit actuellement **14 types de contraintes concrets** dans `BasisConstraintType`.
+
+## Contraintes de transformation
+
+Ces contraintes sont utiles lorsque le résultat principal doit être une position, une rotation, une échelle ou une relation de type parent.
+
+- **Position** — `BasisPositionConstraint` mélange la position d'un Transform à partir d'une ou plusieurs sources pondérées. Les masques d'axes limitent l'influence à certains axes et les offsets évitent que la cible ne se place directement sur la source. Correspond à `PositionConstraint` de Unity et `MultiPositionConstraint` d'Animation Rigging.
+
+- **Rotation** — `BasisRotationConstraint` mélange la rotation depuis une ou plusieurs sources. Les masques par axe et les offsets de rotation permettent de conserver une partie de la pose d'origine. Correspond à `RotationConstraint` de Unity et `MultiRotationConstraint` d'Animation Rigging.
+
+- **Échelle** — `BasisScaleConstraint` mélange l'échelle d'un Transform depuis une ou plusieurs sources. Correspond à `ScaleConstraint` de Unity.
+
+- **Parent** — `BasisParentConstraint` combine la position et la rotation afin qu'un objet puisse suivre des sources de type parent sans modifier sa hiérarchie. Correspond à `ParentConstraint` de Unity et `MultiParentConstraint` d'Animation Rigging.
+
+### Exemple : une contrainte Parent
+
+L'exemple dans l'Inspector montre une `Basis Parent Constraint` avec deux Transforms sources. Chaque source possède un poids de `1`, donc l'objet contraint reçoit le résultat combiné de `Point L` et `Point R`.
+
+La section **Parent** conserve la position et la rotation au repos de la cible et permet de bloquer certains axes de position ou de rotation. **Per-Source Offsets** conserve un offset de position et de rotation séparé pour chaque source, afin que la cible puisse suivre une source sans se placer directement dessus.
+
+![Basis Parent Constraint avec deux sources pondérées](/img/avatars/basis-parent-constraint.png)
+
+## Contraintes de direction et de mouvement
+
+Utilisez-les lorsqu'un Transform doit regarder une cible, mélanger des poses ou suivre une autre cible avec un mouvement particulier.
+
+- **Aim** — `BasisAimConstraint` fait pivoter un objet afin qu'un axe local configuré pointe vers les positions pondérées de ses sources. Correspond à `AimConstraint` de Unity et `MultiAimConstraint` d'Animation Rigging.
+
+- **Look At** — `BasisLookAtConstraint` oriente un objet vers les positions des sources avec une résolution de type look-at. Correspond à `LookAtConstraint` de Unity.
+
+- **Blend** — `BasisBlendConstraint` mélange la position et la rotation entre deux sources. Utilisez-le lorsqu'un Transform doit se déplacer progressivement entre deux références. Correspond à `BlendConstraint` d'Animation Rigging.
+
+- **Override Transform** — `BasisOverrideTransform` remplace ou décale la position et la rotation d'un Transform. Le remplacement peut être appliqué par rapport à une source pour corriger une pose de manière contrôlée. Correspond à `OverrideTransform` d'Animation Rigging.
+
+- **Damped Transform** — `BasisDampedTransform` suit une source avec un mouvement de position et de rotation amorti. La cible rejoint progressivement la source au lieu de changer instantanément. Correspond à `DampedTransform` d'Animation Rigging.
+
+## Contraintes IK et twist
+
+Ces contraintes résolvent des relations entre plusieurs os au lieu de traiter chaque Transform séparément.
+
+- **Twist Correction** — `BasisTwistCorrection` extrait la torsion axiale d'une source et en applique une part pondérée à un nœud twist. Correspond à `TwistCorrection` d'Animation Rigging.
+
+- **Two-Bone IK** — `BasisTwoBoneIK` résout une chaîne de trois articulations, par exemple le haut du bras, l'avant-bras et la main, vers une cible. Un hint facultatif aide à contrôler la direction de flexion de l'articulation centrale. Correspond à `TwoBoneIKConstraint` d'Animation Rigging.
+
+- **Chain IK** — `BasisChainIK` résout une chaîne de plusieurs os vers une cible. Correspond à `ChainIKConstraint` d'Animation Rigging.
+
+- **Twist Chain** — `BasisTwistChain` distribue la torsion entre les cibles racine et extrémité d'une chaîne. Lors de la conversion, Basis crée un composant pour chaque os de la chaîne. Correspond à `TwistChainConstraint` d'Animation Rigging.
+
+## Relations entre références
+
+- **Multi-Referential** — `BasisMultiReferential` préserve la relation entre plusieurs Transforms de référence. Une référence sélectionnée agit comme pilote et les autres suivent sa relation. Correspond à `MultiReferentialConstraint` d'Animation Rigging.
+
+## Données communes des contraintes
+
+Ces types font partie du framework des contraintes, mais ne sont pas des composants concrets à ajouter comme comportements indépendants.
+
+- `BasisConstraintBase` est le composant de base commun. Il contient notamment le poids, les états actif et verrouillé, les données de source et l'ordre d'évaluation défini par l'auteur.
+
+- `BasisConstraintSourceEntry` représente une source. Il contient le `Transform` source et son poids relatif.
+
+- `BasisConstraintAxes` contrôle les axes affectés par une contrainte. Ses valeurs sont `None`, `X`, `Y`, `Z` et `All`.
+
+- `BasisConstraintWorldUp` sélectionne la référence vers le haut lorsqu'une contrainte a besoin d'une direction up. Ses valeurs sont `SceneUp`, `ObjectUp`, `ObjectRotationUp`, `Vector` et `None`.
+
+## Prise en charge automatique des os twist du bras
+
+Basis prend en charge la génération et l'utilisation automatiques des os twist du bras dans son flux IK du corps entier. Cette fonction n'est pas représentée par un composant `BasisConstraintBase` et n'apparaît donc pas comme une contrainte séparée dans la hiérarchie.
+
+Le comportement est implémenté dans `BasisFullIKConstraintJob`. Après la résolution de l'IK du bras, Basis :
+
+1. Recherche les enfants directs des os du haut et du bas du bras dont le nom contient `twist` ou `roll`.
+2. Lie ces Transforms au job IK du corps entier.
+3. Exécute l'étape des os twist après la résolution du bras.
+4. Écrit directement la rotation mondiale de l'os twist détecté.
+
+Un os twist peut donc avoir un pilote de rotation même s'il ne possède pas de `BasisRotationConstraint`. Pour diagnostiquer un conflit, vérifiez aussi les enfants directs de la hiérarchie du bras en plus des composants de contraintes.

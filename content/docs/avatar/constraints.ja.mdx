@@ -1,0 +1,87 @@
+---
+title: コンストレイント
+description: Basis で使用できるコンストレイントコンポーネントと、腕の Twist ボーンの自動サポートについて説明します。
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+コンストレイントは、ある Transform が別の Transform にどのような影響を与えるかを定義します。オブジェクトの移動、ターゲットへの向きの調整、ボーンチェーンの解決、複数の参照間の関係の維持などに使用できます。
+
+Basis は独自のコンストレイントコンポーネントを提供し、アバターのランタイムの一部として評価します。Unity アバターを変換する場合は、以下に記載した Unity と Animation Rigging の名前を対応する Basis コンストレイントの目安として利用できます。
+
+Basis は現在、`BasisConstraintType` に **14 種類の具体的なコンストレイント**を定義しています。
+
+## Transform コンストレイント
+
+主な結果が位置、回転、スケール、または親に似た関係になる場合は、これらのコンストレイントを使用します。
+
+- **Position** — `BasisPositionConstraint` は、1 つ以上の重み付きソースから Transform の位置をブレンドします。軸マスクで影響する位置軸を限定でき、オフセットでターゲットがソースに直接重ならないようにできます。Unity の `PositionConstraint` と Animation Rigging の `MultiPositionConstraint` に対応します。
+
+- **Rotation** — `BasisRotationConstraint` は、1 つ以上のソースから回転をブレンドします。軸ごとのマスクと回転オフセットを使うことで、元のポーズの一部を残せます。Unity の `RotationConstraint` と Animation Rigging の `MultiRotationConstraint` に対応します。
+
+- **Scale** — `BasisScaleConstraint` は、1 つ以上のソースから Transform のスケールをブレンドします。Unity の `ScaleConstraint` に対応します。
+
+- **Parent** — `BasisParentConstraint` は位置と回転を組み合わせ、階層を変更せずにオブジェクトを親のようなソースへ追従させます。Unity の `ParentConstraint` と Animation Rigging の `MultiParentConstraint` に対応します。
+
+### 例: Parent コンストレイント
+
+下の Inspector の例では、2 つのソース Transform を持つ `Basis Parent Constraint` を示しています。各ソースのウェイトは `1` なので、制約されたオブジェクトは `Point L` と `Point R` の組み合わせた結果で駆動されます。
+
+**Parent** セクションには、ターゲットのレスト時の位置と回転が保存され、位置軸や回転軸を個別に固定できます。**Per-Source Offsets** にはソースごとの位置と回転のオフセットが保存されるため、ターゲットをソースに直接重ねずに追従させられます。
+
+![2 つの重み付きソースを持つ Basis Parent Constraint](/img/avatars/basis-parent-constraint.png)
+
+## 方向とモーションのコンストレイント
+
+Transform をターゲットへ向けたり、ポーズ間をブレンドしたり、特定の動きでソースを追従させたりする場合に使用します。
+
+- **Aim** — `BasisAimConstraint` は、設定されたローカル軸がソースの重み付き位置を向くようにオブジェクトを回転させます。Unity の `AimConstraint` と Animation Rigging の `MultiAimConstraint` に対応します。
+
+- **Look At** — `BasisLookAtConstraint` は、Look At に近い解決方法でソースの位置を向くようにオブジェクトを回転させます。Unity の `LookAtConstraint` に対応します。
+
+- **Blend** — `BasisBlendConstraint` は、2 つのソース間で位置と回転をブレンドします。Transform を 2 つの参照の間で連続的に動かしたい場合に便利です。Animation Rigging の `BlendConstraint` に対応します。
+
+- **Override Transform** — `BasisOverrideTransform` は Transform の位置と回転を上書き、またはオフセットします。ソースを基準に適用できるため、既存のポーズを制御可能な形で補正できます。Animation Rigging の `OverrideTransform` に対応します。
+
+- **Damped Transform** — `BasisDampedTransform` は、位置と回転を減衰させながらソースに追従します。ターゲットは即座に移動せず、徐々にソースへ近づきます。Animation Rigging の `DampedTransform` に対応します。
+
+## IK と Twist のコンストレイント
+
+これらは各 Transform を個別に扱うのではなく、複数のボーンにまたがる関係を解決します。
+
+- **Twist Correction** — `BasisTwistCorrection` はソースから軸方向の Twist を抽出し、その重み付きの一部を Twist ノードへ適用します。Animation Rigging の `TwistCorrection` に対応します。
+
+- **Two-Bone IK** — `BasisTwoBoneIK` は、上腕・前腕・手のような 3 関節のチェーンをターゲットへ向けて解決します。オプションの Hint で中央の関節が曲がる方向を調整できます。Animation Rigging の `TwoBoneIKConstraint` に対応します。
+
+- **Chain IK** — `BasisChainIK` は、複数のボーンからなるチェーンをターゲットへ向けて解決します。Animation Rigging の `ChainIKConstraint` に対応します。
+
+- **Twist Chain** — `BasisTwistChain` は、チェーンのルートターゲットと先端ターゲットの間で Twist を分配します。変換時には、チェーンの各ボーンに 1 つの Basis コンポーネントが作成されます。Animation Rigging の `TwistChainConstraint` に対応します。
+
+## 参照間の関係
+
+- **Multi-Referential** — `BasisMultiReferential` は複数の参照 Transform 間の関係を維持します。選択された 1 つの参照がドライバーとなり、他の参照はその関係に従います。Animation Rigging の `MultiReferentialConstraint` に対応します。
+
+## 共通のコンストレイントデータ
+
+以下の型はコンストレイントフレームワークの一部ですが、個別の動作として追加する具体的なコンストレイントコンポーネントではありません。
+
+- `BasisConstraintBase` は共通の基底コンポーネントです。ウェイト、アクティブ状態とロック状態、ソースデータ、作成者が指定した評価順序などを保持します。
+
+- `BasisConstraintSourceEntry` は 1 つのソースを表します。ソースの `Transform` と相対ウェイトを持ちます。
+
+- `BasisConstraintAxes` はコンストレイントが影響する軸を制御します。値は `None`、`X`、`Y`、`Z`、`All` です。
+
+- `BasisConstraintWorldUp` は、Up 方向が必要なコンストレイントで使用する参照を選択します。値は `SceneUp`、`ObjectUp`、`ObjectRotationUp`、`Vector`、`None` です。
+
+## 腕の Twist ボーンの自動サポート
+
+Basis には Full-Body IK のワークフローの一部として、腕の Twist ボーンの自動生成とサポートが含まれています。これは `BasisConstraintBase` コンポーネントではないため、階層内に独立したコンストレイントとして表示されません。
+
+この処理は `BasisFullIKConstraintJob` に実装されています。腕の IK を解決した後、Basis は次の処理を行います。
+
+1. 上腕と前腕のボーンの直接の子から、名前に `twist` または `roll` を含む Transform を探します。
+2. それらの Transform を Full-Body IK ジョブにバインドします。
+3. 腕の解決後に Twist ボーンの処理を実行します。
+4. 検出した Twist ボーンのワールド回転を直接書き込みます。
+
+そのため、Twist ボーンに `BasisRotationConstraint` がなくても回転ドライバーを持つ場合があります。Twist の競合を調査するときは、コンストレイントコンポーネントだけでなく腕の階層にある直接の子も確認してください。

@@ -29,13 +29,13 @@ rm packages-microsoft-prod.deb
 
 Poi continua con l'installazione:
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### Ottenere Basis
 
 Vai alla directory in cui vuoi scaricare Basis ed esegui il seguente comando:
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### Compilare il Basis Server
 
@@ -53,7 +53,7 @@ oppure
 
 #### Esecuzione
 
-Vai alla cartella BasisServerConsole (qualcosa come `/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`)
+Vai alla cartella BasisServerConsole (qualcosa come `/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`)
 ed esegui:
 
 `dotnet .\BasisNetworkConsole.dll`
@@ -79,77 +79,78 @@ La prima volta che esegui il server, vengono creati vari file di configurazione 
 
 ## Config.xml
 
-| Variabile                           | Predefinito           | Descrizione |
-|-------------------------------------|------------------------|-------------|
-| `PeerLimit`                         | 1024                   | Numero massimo di giocatori consentiti sul server. |
-| `SetPort`                           | 4296                   | Porta di rete su cui è in ascolto il server. |
-| `QueueEvents`                       | 10                     |   |
-| `UseNativeSockets`                  | true                   | LNL: Utilizza l'implementazione socket nativa del sistema |
-| `NatPunchEnabled`                   | true                   | LNL: Abilitare NAT punch-through |
-| `PingInterval`                      | 1500                   | LNL:  |
-| `DisconnectTimeout`                | 5000                   | LNL: Tempo di attesa prima di disconnettere un giocatore |
-| `SimulatePacketLoss`               | false                  | Simulare la perdita di pacchetti per i test. |
-| `SimulateLatency`                  | false                  | Simulare la latenza di rete. |
-| `SimulationPacketLossChance`      | 10                     |  |
-| `SimulationMinLatency`            | 50                     | Latenza simulata minima. |
-| `SimulationMaxLatency`            | 150                    | Latenza simulata massima. |
-| `UnsyncedEvents`                   | false                  |  |
-| `UnsyncedReceiveEvent`            | false                  |  |
-| `UnsyncedDeliveryEvent`           | false                  |  |
-| `ReconnectDelay`                   | 500                    | Tempo per un tentativo di riconnessione. |
-| `MaxConnectAttempts`              | 10                     | Numero massimo di tentativi di riconnessione. |
-| `ReuseAddress`                     | true                   |  |
-| `DontRoute`                        | false                  |  |
-| `EnableStatistics`                 | true                   | LNL:  |
-| `IPv6Enabled`                      | true                   | LNL: Abilitare il supporto IPv6. |
-| `MtuOverride`                      | 1500                   | Sovrascrivere MTU (Maximum Transmission Unit). |
-| `MtuDiscovery`                     | true                   | Abilitare il rilevamento automatico MTU. |
-| `DisconnectOnUnreachable`         | true                   | Disconnettere i giocatori se irraggiungibili. |
-| `AllowPeerAddressChange`          | true                   | LNL: Consentire ai client dei giocatori di cambiare il loro indirizzo IP. |
-| `UsingLoggingFile`                | true                   | Abilitare il log su file. |
-| `HealthCheckHost`                 | localhost              | Hostname per i controlli di salute. Usa `*` per associarsi a tutte le interfacce. |
-| `HealthCheckPort`                 | 10666                  | Porta per i controlli di salute. |
-| `HealthPath`                       | /health                | Percorso dell'endpoint di controllo della salute. |
-| `BSRSMillisecondDefaultInterval`  | 50                     |  |
-| `BSRBaseMultiplier`               | 1                      |  |
-| `BSRSIncreaseRate`                | 0.005                  |  |
-| `OverrideAutoDiscoveryOfIpv`      | false                  |  |
-| `IPv4Address`                      | 0.0.0.0                | Indirizzo di binding IPv4. |
-| `IPv6Address`                      | ::1                    | Indirizzo di binding IPv6. |
-| `PromethusPort`                   | 1234                   | Porta per le statistiche Prometheus. |
-| `PromethusUrl`                    | /metrics               | Percorso URL per le statistiche Prometheus. |
-| `Password`                         | default_password       | Password di accesso predefinita del server. |
-| `MinThreadPoolThreads`            | 100                    | Numero minimo di thread nel pool. |
-| `MaxThreadPoolThreads`            | 500                    | Numero massimo di thread nel pool. |
-| `UseAuth`                          | true                   | Abilitare o disabilitare l'autenticazione del server. |
-| `UseAuthIdentity`                 | true                   | Usare la verifica dell'identità DID quando l'auth è abilitata. |
-| `BasisUserRestrictionMode`        | Normal                 | Riguarda gli strumenti di moderazione utente. Attualmente non ancora completato. |
-| `HowManyDuplicateAuthCanExist`   | 2                      | Numero di volte che lo stesso giocatore può essere autenticato contemporaneamente. |
-| `AuthValidationTimeOutMiliseconds` | 9000                 | Timeout per la validazione dell'autenticazione (ms). |
+| Variabile | Predefinito | Descrizione |
+|---|---|---|
+| `PeerLimit` | 65535 | Numero massimo di peer connessi. |
+| `SetPort` | 4296 | Porta UDP su cui il server ascolta. |
+| `UseNativeSockets` | true | Usa chiamate socket native del sistema operativo invece del percorso gestito. |
+| `NatPunchEnabled` | false | Abilita NAT punch-through per introdurre peer. |
+| `PingInterval` | 1500 | Intervallo tra ping keep-alive, in millisecondi. |
+| `DisconnectTimeout` | 30000 | Tempo senza risposta prima di disconnettere un peer, in millisecondi. |
+| `SimulatePacketLoss` | false | Scarta artificialmente pacchetti in uscita per test. |
+| `SimulateLatency` | false | Ritarda artificialmente i pacchetti per test. |
+| `SimulationPacketLossChance` | 10 | Percentuale di perdita pacchetti quando la simulazione è attiva. |
+| `SimulationMinLatency` | 50 | Latenza aggiuntiva minima, in millisecondi. |
+| `SimulationMaxLatency` | 150 | Latenza aggiuntiva massima, in millisecondi. |
+| `ReconnectDelay` | 500 | Tempo prima di tentare la riconnessione. |
+| `MaxConnectAttempts` | 10 | Numero massimo di tentativi di connessione. |
+| `ReuseAddresss` | false | Opzione di riuso socket; nota l’ortografia del campo. |
+| `DontRoute` | false | Opzione di routing del socket. |
+| `EnableStatistics` | true | Raccoglie statistiche di trasporto per salute e stato. |
+| `IPv6Enabled` | true | Abilita supporto socket IPv6 dual-stack. |
+| `MtuOverride` | 0 | Forza una MTU fissa; 0 disabilita la sovrascrittura. |
+| `MtuDiscovery` | true | Abilita discovery Path-MTU. |
+| `DisconnectOnUnreachable` | false | Disconnette su ICMP unreachable. |
+| `AllowPeerAddressChange` | true | Permette a un endpoint peer di cambiare durante la sessione. |
+| `HasFileSupport` | true | Abilita scrittura di log, liste moderazione, dati identità auth e altri dati su disco. |
+| `HealthCheckHost` | localhost | Host o interfaccia per health check. Usa * per tutte le interfacce. |
+| `HealthCheckPort` | 10666 | Porta TCP per health check. |
+| `HealthPath` | /health | Percorso endpoint health check. |
+| `BSRSMillisecondDefaultInterval` | 50 | Intervallo base di invio del Server Reduction System, in millisecondi. |
+| `BSRBaseMultiplier` | 1 | Moltiplicatore base prima della scala per distanza. |
+| `BSRSIncreaseRate` | 0.005 | Quanto rapidamente gli intervalli di invio crescono con la distanza. |
+| `BSRSlowestSendRate` | 2.55 | Frequenza di invio più lenta data ai client per peer distanti. |
+| `HighQualityDistance` | 3 | Soglia distanza per sync avatar alta qualità. |
+| `MediumQualityDistance` | 10 | Soglia distanza per sync avatar qualità media. |
+| `LowQualityDistance` | 20 | Soglia distanza per sync avatar bassa qualità. |
+| `OverrideAutoDiscoveryOfIpv` | false | Associa esattamente gli indirizzi configurati invece di rilevare automaticamente la versione IP. |
+| `IPv4Address` | 0.0.0.0 | Indirizzo di bind IPv4. |
+| `IPv6Address` | :: | Indirizzo di bind IPv6. |
+| `Password` | default_password | Password di accesso al server. |
+| `UseAuth` | true | Abilita o disabilita autenticazione password. |
+| `UseAuthIdentity` | true | Richiede verifica identità DID quando auth è attivo. |
+| `BasisUserRestrictionMode` | Normal | Modalità restrizione ingresso: Normal, BlackList o WhiteList. |
+| `HowManyDuplicateAuthCanExist` | 2 | Numero di connessioni simultanee per la stessa identità auth. |
+| `AuthValidationTimeOutMiliseconds` | 9000 | Timeout validazione auth, in millisecondi. |
+| `EnableConsole` | true | Abilita console interattiva server. |
+| `DisableWriteUnlessAdminPersistentFlag` | true | Rifiuta scritture key/value persistenti se il chiamante non è admin. |
+| `DisableReadUnlessAdminPersistentFlag` | false | Rifiuta letture key/value persistenti se il chiamante non è admin. |
+| `UseNetworkFinalCompression` | false | Abilita passaggio finale di compressione rete. |
+| `EnableBSRProfiling` | false | Emette output profiling del Server Reduction System. |
+| `DisallowHeadless` | false | Rifiuta client headless alla connessione. |
+| `AvatarsLocked` | false | Blocca caricamento avatar per utenti senza permesso bypass. |
+| `PropsLocked` | false | Blocca caricamento prop per utenti senza permesso bypass. |
+| `WorldsLocked` | true | Blocca caricamento mondi per utenti senza permesso bypass. |
 
-<small>Il networking di basso livello è gestito da una libreria di terze parti chiamata <strong>LiteNetLib</strong>. Le variabili di configurazione relative a questo codice sono contrassegnate con <code>LNL</code>.</small>
+<small>Qualsiasi variabile d'ambiente il cui nome corrisponde a un campo di configurazione pubblico sovrascrive quel campo all'avvio.</small>
 
 ### Impostazioni di autenticazione
 
 ```xml
-<UseAuth>true</UseAuth> 
+<UseAuth>true</UseAuth>
 ```
-Destinato alla disabilitazione completa dell'autenticazione.
 
 ```xml
 <UseAuthIdentity>true</UseAuthIdentity>
 ```
-Abilitare o disabilitare il provider di autenticazione DID.
 
 ```xml
 <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
 ```
-Non ancora completato. Moderazione degli amministratori.
 
 ```xml
 <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
 ```
-Quante persone possono connettersi con le stesse credenziali di autenticazione.
 
 ### Esempio Config.xml
 
@@ -158,51 +159,56 @@ Le impostazioni predefinite che puoi trovare in config.xml:
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <QueueEvents>10</QueueEvents>
   <UseNativeSockets>true</UseNativeSockets>
-  <NatPunchEnabled>true</NatPunchEnabled>
+  <NatPunchEnabled>false</NatPunchEnabled>
   <PingInterval>1500</PingInterval>
-  <DisconnectTimeout>5000</DisconnectTimeout>
+  <DisconnectTimeout>30000</DisconnectTimeout>
   <SimulatePacketLoss>false</SimulatePacketLoss>
   <SimulateLatency>false</SimulateLatency>
   <SimulationPacketLossChance>10</SimulationPacketLossChance>
   <SimulationMinLatency>50</SimulationMinLatency>
   <SimulationMaxLatency>150</SimulationMaxLatency>
-  <UnsyncedEvents>false</UnsyncedEvents>
-  <UnsyncedReceiveEvent>false</UnsyncedReceiveEvent>
-  <UnsyncedDeliveryEvent>false</UnsyncedDeliveryEvent>
   <ReconnectDelay>500</ReconnectDelay>
   <MaxConnectAttempts>10</MaxConnectAttempts>
-  <ReuseAddress>true</ReuseAddress>
+  <ReuseAddresss>false</ReuseAddresss>
   <DontRoute>false</DontRoute>
   <EnableStatistics>true</EnableStatistics>
   <IPv6Enabled>true</IPv6Enabled>
-  <MtuOverride>1500</MtuOverride>
+  <MtuOverride>0</MtuOverride>
   <MtuDiscovery>true</MtuDiscovery>
-  <DisconnectOnUnreachable>true</DisconnectOnUnreachable>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
   <AllowPeerAddressChange>true</AllowPeerAddressChange>
-  <UsingLoggingFile>true</UsingLoggingFile>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
   <HealthPath>/health</HealthPath>
   <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
   <BSRBaseMultiplier>1</BSRBaseMultiplier>
   <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
   <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
   <IPv4Address>0.0.0.0</IPv4Address>
-  <IPv6Address>::1</IPv6Address>
-  <PromethusPort>1234</PromethusPort>
-  <PromethusUrl>/metrics</PromethusUrl>
+  <IPv6Address>::</IPv6Address>
   <Password>default_password</Password>
-  <MinThreadPoolThreads>100</MinThreadPoolThreads>
-  <MaxThreadPoolThreads>500</MaxThreadPoolThreads>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
   <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
   <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
   <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

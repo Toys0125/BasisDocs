@@ -1,0 +1,87 @@
+---
+title: 约束
+description: Basis 提供的约束组件，以及手臂 Twist 骨骼的自动支持。
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+约束描述一个 Transform 如何影响另一个 Transform。它们可以移动对象、让对象朝向目标、解算骨骼链，或保持多个参考对象之间的关系。
+
+Basis 提供自己的约束组件，并将它们作为 Avatar 运行时的一部分进行评估。如果你正在转换 Unity Avatar，下面列出的 Unity 和 Animation Rigging 名称可以帮助你找到对应的 Basis 约束。
+
+Basis 目前在 `BasisConstraintType` 中定义了 **14 种具体约束类型**。
+
+## Transform 约束
+
+当主要结果是位置、旋转、缩放或类似父级的关系时，可以使用这些约束。
+
+- **Position** — `BasisPositionConstraint` 根据一个或多个带权重的源混合 Transform 的位置。轴遮罩可以限制受影响的位置轴，而偏移可以避免目标直接跳到源对象上。对应 Unity 的 `PositionConstraint` 和 Animation Rigging 的 `MultiPositionConstraint`。
+
+- **Rotation** — `BasisRotationConstraint` 根据一个或多个源混合旋转。按轴遮罩和旋转偏移可以保留原始姿势的一部分。对应 Unity 的 `RotationConstraint` 和 Animation Rigging 的 `MultiRotationConstraint`。
+
+- **Scale** — `BasisScaleConstraint` 根据一个或多个源混合 Transform 的缩放。对应 Unity 的 `ScaleConstraint`。
+
+- **Parent** — `BasisParentConstraint` 将位置和旋转结合起来，使对象可以跟随类似父级的源，而不需要改变层级。对应 Unity 的 `ParentConstraint` 和 Animation Rigging 的 `MultiParentConstraint`。
+
+### 示例：Parent 约束
+
+下面的 Inspector 示例展示了一个包含两个源 Transform 的 `Basis Parent Constraint`。两个源的权重都是 `1`，因此受约束对象会使用 `Point L` 和 `Point R` 的组合结果。
+
+**Parent** 区域保存目标在静止状态下的位置和旋转，并且可以冻结单独的位置轴或旋转轴。**Per-Source Offsets** 为每个源分别保存位置和旋转偏移，使目标可以跟随源而不必直接重合。
+
+![包含两个带权重源的 Basis Parent Constraint](/img/avatars/basis-parent-constraint.png)
+
+## 方向和运动约束
+
+当 Transform 需要朝向目标、在多个姿势之间混合，或以特定的运动方式跟随源时，可以使用这些约束。
+
+- **Aim** — `BasisAimConstraint` 旋转对象，使配置的本地轴指向源的带权重位置。对应 Unity 的 `AimConstraint` 和 Animation Rigging 的 `MultiAimConstraint`。
+
+- **Look At** — `BasisLookAtConstraint` 使用类似 Look At 的解算，让对象朝向源的位置。对应 Unity 的 `LookAtConstraint`。
+
+- **Blend** — `BasisBlendConstraint` 在两个源之间混合位置和旋转。当 Transform 需要在两个参考对象之间平滑移动时，可以使用它。对应 Animation Rigging 的 `BlendConstraint`。
+
+- **Override Transform** — `BasisOverrideTransform` 替换或偏移 Transform 的位置和旋转。它可以相对于某个源应用覆盖，用于对现有姿势进行可控修正。对应 Animation Rigging 的 `OverrideTransform`。
+
+- **Damped Transform** — `BasisDampedTransform` 以带阻尼的位置和旋转运动跟随源。目标会逐渐追上源，而不是立即跳到源的位置。对应 Animation Rigging 的 `DampedTransform`。
+
+## IK 和 Twist 约束
+
+这些约束会解算多个骨骼之间的关系，而不是分别处理每一个 Transform。
+
+- **Twist Correction** — `BasisTwistCorrection` 提取源的轴向扭转，并将其中带权重的一部分应用到 Twist 节点。对应 Animation Rigging 的 `TwistCorrection`。
+
+- **Two-Bone IK** — `BasisTwoBoneIK` 将三关节链解算到目标，例如上臂、前臂和手。可选的 Hint 可以帮助控制中间关节的弯曲方向。对应 Animation Rigging 的 `TwoBoneIKConstraint`。
+
+- **Chain IK** — `BasisChainIK` 将多个骨骼组成的链解算到目标。对应 Animation Rigging 的 `ChainIKConstraint`。
+
+- **Twist Chain** — `BasisTwistChain` 在骨骼链的根目标和末端目标之间分配 Twist。转换时，Basis 会为链中的每根骨骼创建一个组件。对应 Animation Rigging 的 `TwistChainConstraint`。
+
+## 参考对象关系
+
+- **Multi-Referential** — `BasisMultiReferential` 保持多个参考 Transform 之间的关系。其中一个选定的参考对象作为驱动，其余对象跟随该关系。对应 Animation Rigging 的 `MultiReferentialConstraint`。
+
+## 共享的约束数据
+
+以下类型属于约束框架，但不是需要单独添加为行为的具体约束组件。
+
+- `BasisConstraintBase` 是所有约束共享的基础组件。它保存权重、激活和锁定状态、源数据，以及作者设置的评估顺序等信息。
+
+- `BasisConstraintSourceEntry` 表示一个源。它包含源 `Transform` 和该源的相对权重。
+
+- `BasisConstraintAxes` 控制约束影响哪些轴。可用值为 `None`、`X`、`Y`、`Z` 和 `All`。
+
+- `BasisConstraintWorldUp` 选择约束所需的 Up 方向参考。可用值为 `SceneUp`、`ObjectUp`、`ObjectRotationUp`、`Vector` 和 `None`。
+
+## 手臂 Twist 骨骼的自动支持
+
+Basis 在全身 IK 流程中提供手臂 Twist 骨骼的自动生成和支持。这项功能不是 `BasisConstraintBase` 组件，因此不会在层级中显示为单独的约束。
+
+该行为直接实现在 `BasisFullIKConstraintJob` 中。手臂 IK 解算之后，Basis 会：
+
+1. 查找上臂和前臂骨骼的直接子对象，其名称包含 `twist` 或 `roll`。
+2. 将这些 Transform 绑定到全身 IK 作业中。
+3. 在手臂解算完成后执行 Twist 骨骼步骤。
+4. 直接写入检测到的 Twist 骨骼的世界旋转。
+
+因此，即使 Twist 骨骼上没有 `BasisRotationConstraint`，它也可能已经有旋转驱动器。排查 Twist 冲突时，除了检查约束组件，也要检查手臂层级中的这些直接子对象。

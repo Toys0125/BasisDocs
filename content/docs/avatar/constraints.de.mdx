@@ -1,0 +1,87 @@
+---
+title: Constraints
+description: Die in Basis verfügbaren Constraint-Komponenten und die automatische Unterstützung für Arm-Twist-Bones.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Constraints beschreiben, wie ein Transform einen anderen beeinflusst. Sie können Objekte verschieben, sie auf ein Ziel ausrichten, eine Knochenkette lösen oder die Beziehung zwischen mehreren Referenzen erhalten.
+
+Basis stellt eigene Constraint-Komponenten bereit und wertet sie als Teil der Avatar-Laufzeit aus. Bei der Konvertierung eines Unity-Avatars zeigen die Unity- und Animation-Rigging-Namen unten, welchen bekannten Komponenten die jeweiligen Basis-Constraints entsprechen.
+
+Basis definiert derzeit **14 konkrete Constraint-Typen** in `BasisConstraintType`.
+
+## Transform-Constraints
+
+Diese Constraints sind geeignet, wenn das Ergebnis hauptsächlich eine Position, Rotation, Skalierung oder eine Parent-ähnliche Beziehung ist.
+
+- **Position** — `BasisPositionConstraint` mischt die Position eines Transforms aus einer oder mehreren gewichteten Quellen. Achsenmasken beschränken die Wirkung auf bestimmte Positionsachsen; Offsets verhindern, dass das Ziel direkt auf die Quelle springt. Entspricht Unity `PositionConstraint` und Animation Rigging `MultiPositionConstraint`.
+
+- **Rotation** — `BasisRotationConstraint` mischt die Rotation aus einer oder mehreren Quellen. Achsenmasken und Rotations-Offsets erlauben es, einen Teil der ursprünglichen Pose beizubehalten. Entspricht Unity `RotationConstraint` und Animation Rigging `MultiRotationConstraint`.
+
+- **Scale** — `BasisScaleConstraint` mischt die Skalierung eines Transforms aus einer oder mehreren Quellen. Entspricht Unity `ScaleConstraint`.
+
+- **Parent** — `BasisParentConstraint` kombiniert Positions- und Rotationsverhalten, damit ein Objekt Parent-ähnlichen Quellen folgen kann, ohne die Hierarchie zu ändern. Entspricht Unity `ParentConstraint` und Animation Rigging `MultiParentConstraint`.
+
+### Beispiel: ein Parent-Constraint
+
+Das folgende Inspector-Beispiel zeigt einen `Basis Parent Constraint` mit zwei Quell-Transforms. Beide Quellen haben das Gewicht `1`, sodass das Zielobjekt aus dem kombinierten Ergebnis von `Point L` und `Point R` gesteuert wird.
+
+Der Bereich **Parent** speichert die Position und Rotation des Ziels in der Ausgangspose und kann einzelne Positions- oder Rotationsachsen einfrieren. Unter **Per-Source Offsets** wird für jede Quelle ein eigener Positions- und Rotations-Offset gespeichert. Dadurch kann ein Ziel einer Quelle folgen, ohne direkt auf ihr zu liegen.
+
+![Basis Parent Constraint mit zwei gewichteten Quellen](/img/avatars/basis-parent-constraint.png)
+
+## Richtungs- und Bewegungs-Constraints
+
+Diese Constraints eignen sich, wenn ein Transform auf ein Ziel zeigen, zwischen Posen mischen oder einer Quelle mit einer bestimmten Bewegungscharakteristik folgen soll.
+
+- **Aim** — `BasisAimConstraint` dreht ein Objekt so, dass eine konfigurierte lokale Achse auf die gewichteten Positionen seiner Quellen zeigt. Entspricht Unity `AimConstraint` und Animation Rigging `MultiAimConstraint`.
+
+- **Look At** — `BasisLookAtConstraint` dreht ein Objekt mit einem Look-at-ähnlichen Verfahren zu seinen Quellpositionen. Entspricht Unity `LookAtConstraint`.
+
+- **Blend** — `BasisBlendConstraint` mischt Position und Rotation zwischen zwei Quellen. Das ist nützlich, wenn ein Transform kontinuierlich zwischen zwei Referenzen wechseln soll. Entspricht Animation Rigging `BlendConstraint`.
+
+- **Override Transform** — `BasisOverrideTransform` ersetzt oder versetzt Position und Rotation eines Transforms. Der Override kann relativ zu einer Quelle angewendet werden und eignet sich daher für kontrollierte Korrekturen einer bestehenden Pose. Entspricht Animation Rigging `OverrideTransform`.
+
+- **Damped Transform** — `BasisDampedTransform` folgt einer Quelle mit gedämpfter Positions- und Rotationsbewegung. Das Ziel holt die Quelle allmählich ein, statt sofort zu springen. Entspricht Animation Rigging `DampedTransform`.
+
+## IK- und Twist-Constraints
+
+Diese Constraints lösen Beziehungen über mehrere Knochen hinweg, anstatt jeden Transform unabhängig zu behandeln.
+
+- **Twist Correction** — `BasisTwistCorrection` extrahiert die axiale Drehung einer Quelle und wendet einen gewichteten Anteil davon auf einen Twist-Knoten an. Entspricht Animation Rigging `TwistCorrection`.
+
+- **Two-Bone IK** — `BasisTwoBoneIK` löst eine Kette aus drei Gelenken, zum Beispiel Oberarm, Unterarm und Hand, auf ein Ziel hin. Ein optionaler Hint steuert die Biegerichtung des mittleren Gelenks. Entspricht Animation Rigging `TwoBoneIKConstraint`.
+
+- **Chain IK** — `BasisChainIK` löst eine Kette aus mehreren Knochen auf ein Ziel hin. Entspricht Animation Rigging `ChainIKConstraint`.
+
+- **Twist Chain** — `BasisTwistChain` verteilt Twist zwischen Root- und Tip-Zielen über eine Kette. Bei der Konvertierung erstellt Basis eine Komponente pro Knochen der Kette. Entspricht Animation Rigging `TwistChainConstraint`.
+
+## Beziehungen zwischen Referenzen
+
+- **Multi-Referential** — `BasisMultiReferential` erhält die Beziehung zwischen mehreren Referenz-Transforms. Eine ausgewählte Referenz ist der Treiber, die übrigen folgen ihrer Beziehung. Entspricht Animation Rigging `MultiReferentialConstraint`.
+
+## Gemeinsame Constraint-Daten
+
+Die folgenden Typen gehören zum Constraint-Framework, sind aber keine eigenständigen Constraint-Komponenten, die als einzelne Verhalten hinzugefügt werden.
+
+- `BasisConstraintBase` ist die gemeinsame Basiskomponente. Sie speichert unter anderem Gewicht, aktiven und gesperrten Zustand, Quelldaten und die vom Autor festgelegte Auswertungsreihenfolge.
+
+- `BasisConstraintSourceEntry` beschreibt eine Quelle. Der Eintrag enthält den Quell-`Transform` und das relative Gewicht der Quelle.
+
+- `BasisConstraintAxes` legt fest, welche Achsen ein Constraint beeinflusst. Die Werte sind `None`, `X`, `Y`, `Z` und `All`.
+
+- `BasisConstraintWorldUp` wählt die Aufwärtsreferenz für Constraints, die eine Up-Richtung benötigen. Die Werte sind `SceneUp`, `ObjectUp`, `ObjectRotationUp`, `Vector` und `None`.
+
+## Automatische Unterstützung für Arm-Twist-Bones
+
+Basis unterstützt die automatische Erzeugung und Verarbeitung von Arm-Twist-Bones als Teil des Full-Body-IK-Ablaufs. Diese Funktion ist keine `BasisConstraintBase`-Komponente und erscheint daher nicht als eigener Constraint in der Hierarchie.
+
+Die Funktion ist in `BasisFullIKConstraintJob` implementiert. Nach dem Arm-IK-Solve führt Basis folgende Schritte aus:
+
+1. Direkte Kinder der Ober- und Unterarmknochen werden gesucht, deren Namen `twist` oder `roll` enthalten.
+2. Diese Transforms werden in den Full-Body-IK-Job gebunden.
+3. Der Twist-Bone-Schritt läuft, nachdem der Arm gelöst wurde.
+4. Die Weltrotation des gefundenen Twist-Bones wird direkt geschrieben.
+
+Ein Twist-Bone kann deshalb einen Rotations-Treiber haben, auch wenn sich auf ihm kein `BasisRotationConstraint` befindet. Prüfe bei einem Twist-Konflikt neben den Constraint-Komponenten auch die direkten Kinder in der Arm-Hierarchie.

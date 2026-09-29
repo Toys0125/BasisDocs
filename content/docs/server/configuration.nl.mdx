@@ -29,13 +29,13 @@ rm packages-microsoft-prod.deb
 
 Ga daarna verder met de installatie:
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 #### Basis ophalen
 
 Navigeer naar de map waarnaar je Basis wilt downloaden en voer de volgende opdracht uit:
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 #### Basis Server bouwen
 
@@ -53,7 +53,7 @@ of
 
 #### Uitvoeren
 
-Navigeer naar de BasisServerConsole-map (zoiets als `/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`)
+Navigeer naar de BasisServerConsole-map (zoiets als `/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`)
 en voer uit:
 
 `dotnet .\BasisNetworkConsole.dll`
@@ -79,130 +79,136 @@ De eerste keer dat je de server uitvoert, worden er verschillende configuratiebe
 
 ## Config.xml
 
-| Variabele                           | Standaard             | Beschrijving |
-|-------------------------------------|------------------------|-------------|
-| `PeerLimit`                         | 1024                   | Maximum aantal spelers toegestaan op server. |
-| `SetPort`                           | 4296                   | Netwerkpoort waarop de server luistert. |
-| `QueueEvents`                       | 10                     |   |
-| `UseNativeSockets`                  | true                   | LNL: Gebruik systeemeigen socket-implementatie |
-| `NatPunchEnabled`                   | true                   | LNL: NAT punch-through inschakelen |
-| `PingInterval`                      | 1500                   | LNL:  |
-| `DisconnectTimeout`                | 5000                   | LNL: Tijd om te wachten voor het verbreken van de verbinding met een speler |
-| `SimulatePacketLoss`               | false                  | Pakketverlies simuleren voor testen. |
-| `SimulateLatency`                  | false                  | Netwerklatentie simuleren. |
-| `SimulationPacketLossChance`      | 10                     |  |
-| `SimulationMinLatency`            | 50                     | Minimale gesimuleerde latentie. |
-| `SimulationMaxLatency`            | 150                    | Maximale gesimuleerde latentie. |
-| `UnsyncedEvents`                   | false                  |  |
-| `UnsyncedReceiveEvent`            | false                  |  |
-| `UnsyncedDeliveryEvent`           | false                  |  |
-| `ReconnectDelay`                   | 500                    | Tijd voor een herverbindingspoging. |
-| `MaxConnectAttempts`              | 10                     | Maximum aantal herverbindingspogingen. |
-| `ReuseAddress`                     | true                   |  |
-| `DontRoute`                        | false                  |  |
-| `EnableStatistics`                 | true                   | LNL:  |
-| `IPv6Enabled`                      | true                   | LNL: IPv6-ondersteuning inschakelen. |
-| `MtuOverride`                      | 1500                   | MTU (Maximum Transmission Unit) overschrijven. |
-| `MtuDiscovery`                     | true                   | Automatische MTU-detectie inschakelen. |
-| `DisconnectOnUnreachable`         | true                   | Verbinding verbreken met spelers als ze onbereikbaar zijn. |
-| `AllowPeerAddressChange`          | true                   | LNL: Toestaan dat spelersclients hun IP-adres wijzigen. |
-| `UsingLoggingFile`                | true                   | Loggen naar bestand inschakelen. |
-| `HealthCheckHost`                 | localhost              | Hostnaam voor gezondheidscontroles. Gebruik `*` om aan alle interfaces te binden. |
-| `HealthCheckPort`                 | 10666                  | Poort voor gezondheidscontroles. |
-| `HealthPath`                       | /health                | Pad naar het gezondheidscontrole-endpoint. |
-| `BSRSMillisecondDefaultInterval`  | 50                     |  |
-| `BSRBaseMultiplier`               | 1                      |  |
-| `BSRSIncreaseRate`                | 0.005                  |  |
-| `OverrideAutoDiscoveryOfIpv`      | false                  |  |
-| `IPv4Address`                      | 0.0.0.0                | IPv4-bindadres. |
-| `IPv6Address`                      | ::1                    | IPv6-bindadres. |
-| `PromethusPort`                   | 1234                   | Poort voor Prometheus-statistieken. |
-| `PromethusUrl`                    | /metrics               | URL-pad voor Prometheus-statistieken. |
-| `Password`                         | default_password       | Standaard serverzugangswachtwoord. |
-| `MinThreadPoolThreads`            | 100                    | Minimum aantal thread pool-threads. |
-| `MaxThreadPoolThreads`            | 500                    | Maximum aantal thread pool-threads. |
-| `UseAuth`                          | true                   | Serverauthenticatie in- of uitschakelen. |
-| `UseAuthIdentity`                 | true                   | DID-identiteitsverificatie gebruiken wanneer auth is ingeschakeld. |
-| `BasisUserRestrictionMode`        | Normal                 | Betreft de gebruikersmodtools. Op dit moment nog niet voltooid. |
-| `HowManyDuplicateAuthCanExist`   | 2                      | Aantal keren dat dezelfde speler tegelijkertijd kan worden geverifieerd. |
-| `AuthValidationTimeOutMiliseconds` | 9000                 | Time-out voor auth-validatie (ms). |
+| Variabele | Standaard | Beschrijving |
+|---|---|---|
+| `PeerLimit` | 65535 | Maximum aantal verbonden peers. |
+| `SetPort` | 4296 | UDP-poort waarop de server luistert. |
+| `UseNativeSockets` | true | Gebruikt native socket-aanroepen van het besturingssysteem in plaats van het managed pad. |
+| `NatPunchEnabled` | false | Schakelt NAT punch-through in voor peer-introductie. |
+| `PingInterval` | 1500 | Interval tussen keep-alive-pings, in milliseconden. |
+| `DisconnectTimeout` | 30000 | Tijd zonder antwoord voordat een peer wordt verbroken, in milliseconden. |
+| `SimulatePacketLoss` | false | Laat uitgaande pakketten kunstmatig vallen voor tests. |
+| `SimulateLatency` | false | Vertraagt pakketten kunstmatig voor tests. |
+| `SimulationPacketLossChance` | 10 | Pakketverliespercentage wanneer simulatie actief is. |
+| `SimulationMinLatency` | 50 | Minimale extra latentie, in milliseconden. |
+| `SimulationMaxLatency` | 150 | Maximale extra latentie, in milliseconden. |
+| `ReconnectDelay` | 500 | Tijd voordat opnieuw verbinden wordt geprobeerd. |
+| `MaxConnectAttempts` | 10 | Maximum aantal verbindingspogingen. |
+| `ReuseAddresss` | false | Socket-hergebruikoptie; let op de spelling van het veld. |
+| `DontRoute` | false | Socket-routeringsoptie. |
+| `EnableStatistics` | true | Verzamelt transportstatistieken voor health- en statusrapportage. |
+| `IPv6Enabled` | true | Schakelt IPv6 dual-stack socketondersteuning in. |
+| `MtuOverride` | 0 | Forceert een vaste MTU; 0 schakelt overschrijven uit. |
+| `MtuDiscovery` | true | Schakelt Path-MTU-detectie in. |
+| `DisconnectOnUnreachable` | false | Verbreekt bij ICMP unreachable. |
+| `AllowPeerAddressChange` | true | Staat toe dat een peer-endpoint tijdens de sessie wijzigt. |
+| `HasFileSupport` | true | Schakelt schrijven van logs, moderatielijsten, auth-identiteitsdata en andere schijfdata in. |
+| `HealthCheckHost` | localhost | Host of interface voor health checks. Gebruik * om aan alle interfaces te binden. |
+| `HealthCheckPort` | 10666 | TCP-poort voor health checks. |
+| `HealthPath` | /health | Pad naar het health-check-endpoint. |
+| `BSRSMillisecondDefaultInterval` | 50 | Basis verzendinterval van het Server Reduction System, in milliseconden. |
+| `BSRBaseMultiplier` | 1 | Basismultiplier voor afstandsschaling. |
+| `BSRSIncreaseRate` | 0.005 | Hoe snel verzendintervallen groeien met afstand. |
+| `BSRSlowestSendRate` | 2.55 | Langzaamste verzendsnelheid voor verre peers. |
+| `HighQualityDistance` | 3 | Afstandsdrempel voor avatar-sync met hoge kwaliteit. |
+| `MediumQualityDistance` | 10 | Afstandsdrempel voor avatar-sync met gemiddelde kwaliteit. |
+| `LowQualityDistance` | 20 | Afstandsdrempel voor avatar-sync met lage kwaliteit. |
+| `OverrideAutoDiscoveryOfIpv` | false | Bindt exact aan de geconfigureerde adressen in plaats van IP-versie automatisch te detecteren. |
+| `IPv4Address` | 0.0.0.0 | IPv4-bindadres. |
+| `IPv6Address` | :: | IPv6-bindadres. |
+| `Password` | default_password | Serverwachtwoord. |
+| `UseAuth` | true | Schakelt wachtwoordauthenticatie in of uit. |
+| `UseAuthIdentity` | true | Vereist DID-identiteitscontrole wanneer auth actief is. |
+| `BasisUserRestrictionMode` | Normal | Toegangsrestrictiemodus: Normal, BlackList of WhiteList. |
+| `HowManyDuplicateAuthCanExist` | 2 | Aantal gelijktijdige verbindingen voor dezelfde auth-identiteit. |
+| `AuthValidationTimeOutMiliseconds` | 9000 | Timeout voor auth-validatie, in milliseconden. |
+| `EnableConsole` | true | Schakelt de interactieve serverconsole in. |
+| `DisableWriteUnlessAdminPersistentFlag` | true | Weigert persistente key/value-schrijfacties tenzij de aanroeper admin is. |
+| `DisableReadUnlessAdminPersistentFlag` | false | Weigert persistente key/value-leesacties tenzij de aanroeper admin is. |
+| `UseNetworkFinalCompression` | false | Schakelt de finale netwerkcompressiestap in. |
+| `EnableBSRProfiling` | false | Geeft profiling-output van het Server Reduction System. |
+| `DisallowHeadless` | false | Weigert headless clients bij verbinden. |
+| `AvatarsLocked` | false | Blokkeert avatar laden voor gebruikers zonder bypass-permissie. |
+| `PropsLocked` | false | Blokkeert prop laden voor gebruikers zonder bypass-permissie. |
+| `WorldsLocked` | true | Blokkeert wereld laden voor gebruikers zonder bypass-permissie. |
 
-<small>Het low-level netwerken wordt afgehandeld door een bibliotheek van derden genaamd <strong>LiteNetLib</strong>. Configuratievariabelen gerelateerd aan deze code zijn gemarkeerd met <code>LNL</code>.</small>
+<small>Elke omgevingsvariabele waarvan de naam overeenkomt met een openbaar configuratieveld overschrijft dat veld bij het starten.</small>
 
 ### Authenticatie-instellingen
 
 ```xml
-<UseAuth>true</UseAuth> 
+<UseAuth>true</UseAuth>
 ```
-Bedoeld voor het volledig uitschakelen van auth.
 
 ```xml
 <UseAuthIdentity>true</UseAuthIdentity>
 ```
-DID-auth-provider in- of uitschakelen.
 
 ```xml
 <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
 ```
-Nog niet voltooid. Beheerdersmatiging.
 
 ```xml
 <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
 ```
-Hoeveel mensen verbinding kunnen maken met dezelfde auth-gegevens.
 
 ### Voorbeeld Config.xml
 
-De standaardinstellingen die je kunt vinden in de config.xml:
+De standaardinstellingen die je in config.xml kunt vinden:
 
 ```xml title="config.xml"
 <?xml version="1.0" encoding="utf-8"?>
 <Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PeerLimit>1024</PeerLimit>
+  <PeerLimit>65535</PeerLimit>
   <SetPort>4296</SetPort>
-  <QueueEvents>10</QueueEvents>
   <UseNativeSockets>true</UseNativeSockets>
-  <NatPunchEnabled>true</NatPunchEnabled>
+  <NatPunchEnabled>false</NatPunchEnabled>
   <PingInterval>1500</PingInterval>
-  <DisconnectTimeout>5000</DisconnectTimeout>
+  <DisconnectTimeout>30000</DisconnectTimeout>
   <SimulatePacketLoss>false</SimulatePacketLoss>
   <SimulateLatency>false</SimulateLatency>
   <SimulationPacketLossChance>10</SimulationPacketLossChance>
   <SimulationMinLatency>50</SimulationMinLatency>
   <SimulationMaxLatency>150</SimulationMaxLatency>
-  <UnsyncedEvents>false</UnsyncedEvents>
-  <UnsyncedReceiveEvent>false</UnsyncedReceiveEvent>
-  <UnsyncedDeliveryEvent>false</UnsyncedDeliveryEvent>
   <ReconnectDelay>500</ReconnectDelay>
   <MaxConnectAttempts>10</MaxConnectAttempts>
-  <ReuseAddress>true</ReuseAddress>
+  <ReuseAddresss>false</ReuseAddresss>
   <DontRoute>false</DontRoute>
   <EnableStatistics>true</EnableStatistics>
   <IPv6Enabled>true</IPv6Enabled>
-  <MtuOverride>1500</MtuOverride>
+  <MtuOverride>0</MtuOverride>
   <MtuDiscovery>true</MtuDiscovery>
-  <DisconnectOnUnreachable>true</DisconnectOnUnreachable>
+  <DisconnectOnUnreachable>false</DisconnectOnUnreachable>
   <AllowPeerAddressChange>true</AllowPeerAddressChange>
-  <UsingLoggingFile>true</UsingLoggingFile>
+  <HasFileSupport>true</HasFileSupport>
   <HealthCheckHost>localhost</HealthCheckHost>
   <HealthCheckPort>10666</HealthCheckPort>
   <HealthPath>/health</HealthPath>
   <BSRSMillisecondDefaultInterval>50</BSRSMillisecondDefaultInterval>
   <BSRBaseMultiplier>1</BSRBaseMultiplier>
   <BSRSIncreaseRate>0.005</BSRSIncreaseRate>
+  <BSRSlowestSendRate>2.55</BSRSlowestSendRate>
+  <HighQualityDistance>3</HighQualityDistance>
+  <MediumQualityDistance>10</MediumQualityDistance>
+  <LowQualityDistance>20</LowQualityDistance>
   <OverrideAutoDiscoveryOfIpv>false</OverrideAutoDiscoveryOfIpv>
   <IPv4Address>0.0.0.0</IPv4Address>
-  <IPv6Address>::1</IPv6Address>
-  <PromethusPort>1234</PromethusPort>
-  <PromethusUrl>/metrics</PromethusUrl>
+  <IPv6Address>::</IPv6Address>
   <Password>default_password</Password>
-  <MinThreadPoolThreads>100</MinThreadPoolThreads>
-  <MaxThreadPoolThreads>500</MaxThreadPoolThreads>
   <UseAuth>true</UseAuth>
   <UseAuthIdentity>true</UseAuthIdentity>
   <BasisUserRestrictionMode>Normal</BasisUserRestrictionMode>
   <HowManyDuplicateAuthCanExist>2</HowManyDuplicateAuthCanExist>
   <AuthValidationTimeOutMiliseconds>9000</AuthValidationTimeOutMiliseconds>
+  <EnableConsole>true</EnableConsole>
+  <DisableWriteUnlessAdminPersistentFlag>true</DisableWriteUnlessAdminPersistentFlag>
+  <DisableReadUnlessAdminPersistentFlag>false</DisableReadUnlessAdminPersistentFlag>
+  <UseNetworkFinalCompression>false</UseNetworkFinalCompression>
+  <EnableBSRProfiling>false</EnableBSRProfiling>
+  <DisallowHeadless>false</DisallowHeadless>
+  <AvatarsLocked>false</AvatarsLocked>
+  <PropsLocked>false</PropsLocked>
+  <WorldsLocked>true</WorldsLocked>
 </Configuration>
 ```
 

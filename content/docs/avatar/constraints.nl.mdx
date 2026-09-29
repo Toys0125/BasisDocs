@@ -1,0 +1,87 @@
+---
+title: Constraints
+description: De constraintcomponenten die Basis beschikbaar maakt en de automatische ondersteuning voor arm-twistbotten.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Constraints beschrijven hoe één Transform invloed kan hebben op een andere. Ze kunnen een object verplaatsen, het naar een doel richten, een bottenketen oplossen of de relatie tussen meerdere referenties behouden.
+
+Basis levert eigen constraintcomponenten en evalueert deze tijdens de runtime van de avatar. Bij het converteren van een Unity-avatar laten de Unity- en Animation Rigging-namen hieronder zien welke bekende componenten overeenkomen met elke Basis-constraint.
+
+Basis definieert momenteel **14 concrete constrainttypen** in `BasisConstraintType`.
+
+## Transform-constraints
+
+Deze constraints zijn handig wanneer het resultaat vooral een positie, rotatie, schaal of ouderachtige relatie moet zijn.
+
+- **Position** — `BasisPositionConstraint` mengt de positie van een Transform uit één of meer gewogen bronnen. Met asmaskers beperk je de werking tot bepaalde positie-assen; offsets voorkomen dat het doel direct op de bron springt. Komt overeen met Unity `PositionConstraint` en Animation Rigging `MultiPositionConstraint`.
+
+- **Rotation** — `BasisRotationConstraint` mengt de rotatie uit één of meer bronnen. A maskers per as en rotatie-offsets maken het mogelijk om een deel van de oorspronkelijke pose te behouden. Komt overeen met Unity `RotationConstraint` en Animation Rigging `MultiRotationConstraint`.
+
+- **Scale** — `BasisScaleConstraint` mengt de schaal van een Transform uit één of meer bronnen. Komt overeen met Unity `ScaleConstraint`.
+
+- **Parent** — `BasisParentConstraint` combineert positie en rotatie zodat een object ouderachtige bronnen kan volgen zonder de hiërarchie te wijzigen. Komt overeen met Unity `ParentConstraint` en Animation Rigging `MultiParentConstraint`.
+
+### Voorbeeld: een Parent-constraint
+
+Het Inspector-voorbeeld hieronder toont een `Basis Parent Constraint` met twee bron-Transforms. Beide bronnen hebben gewicht `1`, waardoor het beperkte object wordt aangestuurd door het gecombineerde resultaat van `Point L` en `Point R`.
+
+In de sectie **Parent** staan de rustpositie en -rotatie van het doel. Je kunt er ook afzonderlijke positie- en rotatie-assen bevriezen. **Per-Source Offsets** bevat voor iedere bron een eigen positie- en rotatie-offset, zodat het doel een bron kan volgen zonder er direct bovenop te springen.
+
+![Basis Parent Constraint met twee gewogen bronnen](/img/avatars/basis-parent-constraint.png)
+
+## Richtings- en bewegingsconstraints
+
+Gebruik deze wanneer een Transform naar een doel moet kijken, tussen poses moet mengen of een bron met een bepaald bewegingsgedrag moet volgen.
+
+- **Aim** — `BasisAimConstraint` draait een object zodat een ingestelde lokale as naar de gewogen posities van de bronnen wijst. Komt overeen met Unity `AimConstraint` en Animation Rigging `MultiAimConstraint`.
+
+- **Look At** — `BasisLookAtConstraint` draait een object naar de bronposities met een look-at-achtige oplossing. Komt overeen met Unity `LookAtConstraint`.
+
+- **Blend** — `BasisBlendConstraint` mengt positie en rotatie tussen twee bronnen. Dit is handig wanneer een Transform geleidelijk tussen twee referenties moet bewegen. Komt overeen met Animation Rigging `BlendConstraint`.
+
+- **Override Transform** — `BasisOverrideTransform` vervangt of verschuift de positie en rotatie van een Transform. De override kan relatief aan een bron worden toegepast voor een gecontroleerde correctie van een bestaande pose. Komt overeen met Animation Rigging `OverrideTransform`.
+
+- **Damped Transform** — `BasisDampedTransform` volgt een bron met gedempte positie- en rotatiebeweging. Het doel haalt de bron geleidelijk in in plaats van direct te springen. Komt overeen met Animation Rigging `DampedTransform`.
+
+## IK- en twist-constraints
+
+Deze constraints lossen relaties over meerdere botten op in plaats van iedere Transform afzonderlijk te behandelen.
+
+- **Twist Correction** — `BasisTwistCorrection` haalt axiale twist uit een bron en past een gewogen deel toe op een twist-node. Komt overeen met Animation Rigging `TwistCorrection`.
+
+- **Two-Bone IK** — `BasisTwoBoneIK` lost een keten van drie gewrichten op, bijvoorbeeld bovenarm, onderarm en hand, naar een doel. Een optionele hint helpt de buigrichting van het middelste gewricht te bepalen. Komt overeen met Animation Rigging `TwoBoneIKConstraint`.
+
+- **Chain IK** — `BasisChainIK` lost een keten van meerdere botten naar een doel op. Komt overeen met Animation Rigging `ChainIKConstraint`.
+
+- **Twist Chain** — `BasisTwistChain` verdeelt twist tussen root- en tipdoelen over een keten. Tijdens de conversie maakt Basis één component per bot in de keten. Komt overeen met Animation Rigging `TwistChainConstraint`.
+
+## Relaties tussen referenties
+
+- **Multi-Referential** — `BasisMultiReferential` behoudt de relatie tussen meerdere referentie-Transforms. Eén geselecteerde referentie is de driver; de overige volgen die relatie. Komt overeen met Animation Rigging `MultiReferentialConstraint`.
+
+## Gedeelde constraintgegevens
+
+Deze typen maken deel uit van het constraintframework, maar zijn geen concrete componenten die je als afzonderlijk gedrag toevoegt.
+
+- `BasisConstraintBase` is de gemeenschappelijke basiscomponent. Deze bevat onder andere gewicht, actieve en vergrendelde status, brongegevens en de door de auteur bepaalde evaluatievolgorde.
+
+- `BasisConstraintSourceEntry` stelt één bron voor. De entry bevat de bron-`Transform` en het relatieve gewicht van die bron.
+
+- `BasisConstraintAxes` bepaalt welke assen een constraint beïnvloedt. De waarden zijn `None`, `X`, `Y`, `Z` en `All`.
+
+- `BasisConstraintWorldUp` kiest de up-referentie wanneer een constraint een up-richting nodig heeft. De waarden zijn `SceneUp`, `ObjectUp`, `ObjectRotationUp`, `Vector` en `None`.
+
+## Automatische ondersteuning voor arm-twistbotten
+
+Basis ondersteunt automatische generatie en verwerking van arm-twistbotten als onderdeel van de full-body IK-workflow. Dit is geen `BasisConstraintBase`-component en verschijnt daarom niet als afzonderlijke constraint in de hiërarchie.
+
+De werking is geïmplementeerd in `BasisFullIKConstraintJob`. Na het oplossen van de arm-IK doet Basis het volgende:
+
+1. Zoekt directe kinderen van de boven- en onderarmbotten waarvan de naam `twist` of `roll` bevat.
+2. Bindt deze Transforms aan de full-body IK-job.
+3. Voert de twist-bonestap uit nadat de arm is opgelost.
+4. Schrijft de wereldrotatie van het gevonden twistbot direct.
+
+Een twistbot kan daardoor een rotatiedriver hebben zonder dat er een `BasisRotationConstraint` op staat. Controleer bij problemen ook de directe kinderen in de armhiërarchie, naast de constraintcomponenten.

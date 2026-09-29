@@ -10,7 +10,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 サーバーのマルチスレッドは利用可能なコア数が多いほど最高に動作しますが、2コアという少ないコア数でも良好に動作することが示されています。ソーシャルVRは大量の帯域幅を必要とするため、サービスプロバイダーを選ぶ際にその点を念頭に置いてください。
 
-このドキュメントは、2025年5月時点のLTSブランチの未変更Basisサーバー：バージョン6に適用されます {/* `commit 672035f0afe87b2fbe4e36bbd7f6cd340059d976` of lts branch */}
+このドキュメントは、`long-term-support-20260425` ブランチの未変更Basisサーバー：バージョン29（2026年4月）に適用されます。
 
 <Callout type="info" title="サーバーバージョンに関するヒント">
 リポジトリからクローンしたコードで**ServerVersion**を確認できます。  
@@ -18,13 +18,13 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 ```csharp
 BasisNetworkCore\BasisNetworkVersion.cs
-5:        public static ushort ServerVersion = 6;
+5:        public static ushort ServerVersion = 29;
 ```
 </Callout>
 
 ## [Docker](https://docs.docker.com/get-started/docker-overview/)で実行する
 
-[docker-compose](https://docs.docker.com/compose/)を使用するのが、Basisサーバーを起動する最も簡単で速い方法です。サーバーのDockerイメージはGitHubに`long-term-support`と`developer`ブランチの両方で、それぞれ`latest`と`nightly`として公開されています。
+[docker-compose](https://docs.docker.com/compose/)を使用するのが、Basisサーバーを起動する最も簡単で速い方法です。サーバーのDockerイメージはGitHubに`long-term-support-20260425`と`developer`ブランチの両方で、それぞれ`latest`と`nightly`として公開されています。
 
 ```yml
 services:
@@ -60,29 +60,36 @@ services:
 ``` 
 `config.xml`を作成するために一度実行します（例では`./config`の下）。XMLの設定は環境変数によって上書きされます。
 
+## ビルド済みバイナリ
+
+ビルド済みサーバーバイナリは GitHub Actions artifacts から入手できます:
+
+- [Nightly developer builds](https://nightly.link/BasisVR/Basis/workflows/compilation/developer?preview)
+- [Long-term support builds](https://nightly.link/BasisVR/Basis/workflows/compilation/long-term-support-20260425?preview)
+
 ## Windowsでコンパイルして実行する
 
 リポジトリのLTSブランチをクローンしたと仮定しています。
-`git clone -b long-term-support https://github.com/BasisVR/Basis.git`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis.git`
 
-Visual Studioのソリューションファイル（sln）は`Basis Server`ディレクトリにあります。
-これらの手順はWindows 11とMicrosoft Visual Studio Community 2022（64ビット）- バージョン17.12.3を前提とします。
+You will find the Visual Studio Solution file (sln) in the `Basis Server` directory.
+These steps assume Windows 11 using Microsoft Visual Studio Community 2026 (64-bit).
 
-BasisNetworkConsoleは、コンパイルのためにターゲットにする必要があるcsprojです。
-上部のスタートアップアイテムメニューからそのプロジェクトを選択できるはずです。
-選択後、緑の矢印をクリックしてビルドします。
+The BasisNetworkConsole is the csproj you will need to target for compiling.
+You should be able to select that project from the start up item menu at the top.
+Once selected click the green arrow to build.
 
-コンパイル後、`\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\`に移動して
+コンパイル後、`\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\`に移動して
 サーバーのexeとコンパイルされた依存関係を見つけます。
 
 Windowsでサーバーをローカルで実行するには、このディレクトリでコマンドシェルを開いて`.\BasisNetworkConsole.exe`を実行します。
 
-`\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0> .\BasisNetworkConsole.exe`
+`\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0> .\BasisNetworkConsole.exe`
 
 これでコンソールが開き、次のような内容が表示されます：
 
 ```txt title="サーバーコンソール出力の例"
-[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net9.0\Logs\2025-05-10.log
+[20:07] [INFO] Logs are saved to C:\Basis\Basis Server\BasisServerConsole\bin\Debug\net10.0\Logs\2025-05-10.log
 [20:07] [INFO] Server Booting
 [20:07] [INFO] HTTP health check started at 'http://localhost:10666/health'
 [20:07] [INFO] Loaded Admins 0
@@ -113,13 +120,13 @@ rm packages-microsoft-prod.deb
 
 その後インストールを続けます：
 
-`sudo apt-get update && sudo apt-get install -y dotnet-sdk-9.0`
+`sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0`
 
 ### Basisを取得する
 
 Basisをダウンロードしたいフォルダに移動し、以下のコマンドを実行します：
 
-`git clone -b long-term-support https://github.com/BasisVR/Basis`
+`git clone -b long-term-support-20260425 https://github.com/BasisVR/Basis`
 
 ### Basisサーバーをビルドする
 
@@ -137,7 +144,7 @@ Basisをダウンロードしたいフォルダに移動し、以下のコマン
 
 ### 実行する
 
-BasisServerConsoleディレクトリに移動します（`/BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`のようなパス）
+BasisServerConsoleディレクトリに移動します（`/BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`のようなパス）
 そして実行します：
 
 `dotnet .\.BasisNetworkConsole.dll`
@@ -146,7 +153,7 @@ BasisServerConsoleディレクトリに移動します（`/BasisServerConsole/bi
 
 以下でコンパイルできます：
 
-`dotnet publish -f net9.0 --self-contained --os Linux`
+`dotnet publish -f net10.0 --self-contained --os Linux`
 
 `--self-contained`スイッチはdotnetがインストールされていないOSでの実行を可能にするために追加されます。
 
@@ -154,7 +161,7 @@ BasisServerConsoleディレクトリに移動します（`/BasisServerConsole/bi
 
 `./BasisNetworkConsole`
 
-`BasisServerConsole/bin/Debug/net9.0/BasisNetworkConsole`から。
+`BasisServerConsole/bin/Debug/net10.0/BasisNetworkConsole`から。
 
 </Callout>
 
